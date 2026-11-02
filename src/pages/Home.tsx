@@ -4,6 +4,7 @@ import { IDEAS, BY_IDEA, CULTURE, SAYINGS, PAIRS, stats, fmt } from '../engine';
 import { go, href } from '../route';
 import Rich from '../Rich';
 import { Icon } from '../icons';
+import { artThumb } from '../components/Art';
 
 export default function Home() {
   const st = useMemo(stats, []);
@@ -17,11 +18,11 @@ export default function Home() {
   const idea = IDEAS[ix];
   const far = st.farCousin;
   const MAP = [
-    { id: 'daf', he: 'הדף', n: IDEAS.length, unit: 'מחלוקות', line: 'רעיון אחד בצורת דף: צד א, צד ב, והכרעה.', cols: '1 היכרות · 2 הבנה · 3 יישום' },
-    { id: 'mirror', he: 'מראה', n: PAIRS.length, unit: 'זוגות', line: 'כל זוג על שני צירים: דמיון במילים ודמיון במשמעות.', cols: 'סינון · מישור · השוואת זוג' },
-    { id: 'atlas', he: 'אטלס', n: st.cultures.length, unit: 'תרבויות', line: 'איפה ומתי נאמר כל רעיון, על מפה וציר זמן.', cols: 'רעיון וזמן · מפה · תרבות' },
-    { id: 'trends', he: 'מגמות', n: st.both.length, unit: 'סתירות פנימיות', line: 'מה המכונה מצאה: סתירות, דימויים, ותרבויות שמסכימות.', cols: 'מטריצה · דימויים · ממצאים' },
-    { id: 'article', he: 'כתבה', n: 3, unit: 'נהרות', line: 'שני חכמים ליד נהר, באותה מאה, במרחק 7,600 ק"מ.', cols: 'מגזין · ציטוט · הייקו' },
+    { id: 'daf', art: 'haste', he: 'הדף', n: IDEAS.length, unit: 'מחלוקות', line: 'רעיון אחד בצורת דף: צד א, צד ב, והכרעה.', cols: '1 היכרות · 2 הבנה · 3 יישום' },
+    { id: 'mirror', art: 'drop', he: 'מראה', n: PAIRS.length, unit: 'זוגות', line: 'ארבעה סוגי קשר: תאומים, בני דודים, מתחזים ויריבים.', cols: 'סוג קשר · זוגות · פרשנות' },
+    { id: 'atlas', art: 'home', he: 'אטלס', n: st.cultures.length, unit: 'תרבויות', line: 'איפה ומתי נאמר כל רעיון, על מפה וציר זמן.', cols: 'רעיון וזמן · מפה וזום · תרבות' },
+    { id: 'trends', art: 'fate', he: 'תובנות', n: 9, unit: 'עולמות ערכים', line: 'מה כל עולם בוחר, ודרך איזו עדשה הוא מסביר.', cols: 'עולם · דיוקן · עדויות' },
+    { id: 'article', art: 'change', he: 'כתבה', n: 3, unit: 'נהרות', line: 'שני חכמים ליד נהר, באותה מאה, במרחק 7,600 ק"מ.', cols: 'מגזין · ציטוט · הייקו' },
   ];
   return (
     <main className="app-main home">
@@ -37,7 +38,8 @@ export default function Home() {
         </div>
         <nav className="home-map" aria-label="מפת האפליקציה">
           {MAP.map((m, i) => (
-            <a key={m.id} href={href(m.id)} className="map-card rise" style={{ animationDelay: `${i * 0.06}s` }}>
+            <a key={m.id} href={href(m.id)} className={`map-card rise${artThumb(m.art) ? ' has-img' : ''}`} style={{ animationDelay: `${i * 0.06}s` }}>
+              {artThumb(m.art) && <img className="mc-img" src={`./art/${artThumb(m.art)}`} alt="" loading="lazy" />}
               <span className="mc-hd"><b>{m.he}</b><span className="mc-n"><bdi className="num">{fmt(m.n)}</bdi> <span className="src">{m.unit}</span></span></span>
               <span className="mc-line">{m.line}</span>
               <span className="label">{m.cols}</span>

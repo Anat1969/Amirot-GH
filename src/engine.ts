@@ -1,9 +1,16 @@
 // מנוע הקשרים: הכול מחושב בקוד, דטרמיניסטי, מתוך המאגר. אין כאן טקסט שמודל כתב בזמן ריצה.
 import { SAYINGS, CROSS_PAIRS, type Saying, type Side } from './data/sayings';
 import { IDEAS, IDEA } from './data/ideas';
-import { CULTURE, CULTURES } from './data/cultures';
+import { CULTURE, CULTURES, LANGS, WORLDS, type World } from './data/cultures';
+import { GROUPS, VALUES, LENSES, PORTRAITS, LENS_LINE, type Lens } from './data/lenses';
 
-export { SAYINGS, IDEAS, IDEA, CULTURE, CULTURES };
+export { SAYINGS, IDEAS, IDEA, CULTURE, CULTURES, LANGS, WORLDS, GROUPS, VALUES, LENSES, PORTRAITS, LENS_LINE };
+export type { World, Lens };
+
+// שפה אינה תרבות: לכל אמירה שפה משלה. בלי נוסח מקור, השפה היא עברית.
+export const langOf = (s: Saying) => s.lang || 'he';
+export const GROUP_OF: Record<string, string> = {};
+for (const g of GROUPS) for (const i of g.ideas) GROUP_OF[i] = g.id;
 export type { Saying, Side };
 
 export const BY_ID: Record<string, Saying> = Object.fromEntries(SAYINGS.map((s) => [s.id, s]));
@@ -183,4 +190,36 @@ export function matcher(q: string) {
     const text = strip([s.he, s.orig, s.src, c.he, c.en, c.place, c.placeEn, IDEA[s.idea].chip, IDEA[s.idea].q, s.motifs.join(' ')].join(' '));
     return res.every((r) => r.test(text));
   };
+}
+
+
+// ───── עולמות ערכים: מה כל עולם בוחר, ובאיזו עדשה הוא מסתכל ─────
+export const WORLD_ORDER: World[] = ['jewish', 'islam', 'china', 'japan', 'classical', 'christian', 'anglo', 'europe', 'other'];
+export function worldStats(w: World) {
+  const ss = SAYINGS.filter((s) => CULTURE[s.culture].world === w);
+  const ideas: Record<string, { a: number; b: number; s: number }> = {};
+  for (const s of ss) (ideas[s.idea] ||= { a: 0, b: 0, s: 0 })[s.side]++;
+  const both = Object.entries(ideas).filter(([, c]) => c.a && c.b).map(([i]) => i);
+  const values: Record<string, { n: number; side: 'a' | 'b'; idea: string }> = {};
+  for (const s of ss) if (s.side !== 's') { const v = VALUES[s.idea][s.side]; (values[v] ||= { n: 0, side: s.side, idea: s.idea }).n++; }
+  const lens: Record<string, number> = {};
+  for (const ls of Object.values(LENSES)) for (const l of ls) if (l.c.some((c) => CULTURE[c].world === w)) lens[l.lens] = (lens[l.lens] || 0) + 1;
+  const langs = [...new Set(ss.map(langOf))];
+  const cultures = [...new Set(ss.map((s) => s.culture))];
+  return { w, ss, ideas, both, syn: ss.filter((s) => s.side === 's').length, values, lens, langs, cultures };
+}
+
+// ───── שפה ותרבות: אותה שפה בכמה תרבויות, ואותה תרבות בכמה שפות ─────
+export function langCulture() {
+  const byLang: Record<string, Set<string>> = {};
+  const byWorld: Record<string, Set<string>> = {};
+  for (const s of SAYINGS) {
+    (byLang[langOf(s)] ||= new Set()).add(s.culture);
+    (byWorld[CULTURE[s.culture].world] ||= new Set()).add(langOf(s));
+  }
+  const sharedLangs = Object.entries(byLang).filter(([, c]) => c.size > 1).map(([l, c]) => ({ lang: l, cultures: [...c] })).sort((a, b) => b.cultures.length - a.cultures.length);
+  const multiLangWorlds = Object.entries(byWorld).filter(([, l]) => l.size > 1).map(([w, l]) => ({ world: w as World, langs: [...l] })).sort((a, b) => b.langs.length - a.langs.length);
+  // אותה שפה, תרבות אחרת, משמעות הפוכה
+  const splits = PAIRS.filter((p) => langOf(p.a) === langOf(p.b) && p.a.culture !== p.b.culture && p.meaning < 0);
+  return { sharedLangs, multiLangWorlds, splits };
 }

@@ -173,3 +173,10 @@ details.sources ol { margin: 4px 0 0; padding-inline-start: 18px; font-size: 11.
 .yr { white-space: nowrap; }
 .yr .num { font-weight: 500; }
 .yr .bce, .yr.folk { font-size: .92em; }
+.flag { display: inline-block; vertical-align: -2px; box-shadow: 0 0 0 1px rgba(26,26,24,.12); margin-inline-end: 5px; object-fit: cover; }
+.cname { display: inline-flex; align-items: center; white-space: nowrap; }
+.cname b { font-weight: 600; }
+/* תובנה מושחרת: כל שורת תובנה בולטת במשקל */
+.insight-line { font-weight: 600; }
+.say.nikud { font-family: "Frank Ruhl Libre", serif; }
+.sp-card { padding: 4px 14px 10px; background: var(--rule-soft); display: grid; gap: 2px; }

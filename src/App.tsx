@@ -8,7 +8,7 @@ import Trends from './pages/Trends';
 const Atlas = lazy(() => import('./pages/Atlas'));
 const Article = lazy(() => import('./pages/Article'));
 
-const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'מגמות', article: 'כתבה' };
+const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', article: 'כתבה' };
 
 export default function App() {
   const { page, params } = useRoute();
@@ -18,7 +18,7 @@ export default function App() {
       case 'daf': return <Daf params={params} />;
       case 'mirror': return <Mirror params={params} />;
       case 'atlas': return <Atlas params={params} />;
-      case 'trends': return <Trends />;
+      case 'trends': return <Trends params={params} />;
       case 'article': return <Article />;
       default: return <Home />;
     }
