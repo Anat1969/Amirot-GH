@@ -15,9 +15,11 @@ function Panel({ art, side, label, idea }: { art: Art | null; side: 'a' | 'b'; l
   }
   return (
     <figure className={`dp dp-${side}`}>
-      <img src={`./art/${art.file}`} alt={`${art.title}, ${art.artist}`} loading="lazy" />
+      <a href={`https://clevelandart.org/art/${art.accession}`} target="_blank" rel="noopener" className="dp-link" title={`${art.titleEn} · ${art.artistEn}`}>
+        <img src={`./art/${art.file}`} alt={`${art.title}, ${art.artist}`} loading="lazy" style={art.pos ? { objectPosition: art.pos } : undefined} />
+      </a>
       <span className="dp-side">{label}</span>
-      <figcaption className="src" title={art.why}><b>{art.title}</b> · {art.artist}, {art.date}</figcaption>
+      <figcaption className="src"><b>{art.title}</b> · {art.artist} <span className="en">{art.artistEn}</span>, {art.date}</figcaption>
     </figure>
   );
 }

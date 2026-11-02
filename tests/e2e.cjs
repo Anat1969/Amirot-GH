@@ -57,6 +57,8 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.locator('.topics .topic', { hasText: 'טיפה' }).click(); await p.waitForTimeout(300);
   ok(p.url().includes('i=drop'), 'בחירת רעיון: משפחה ואז נושא');
   ok(await p.locator('.flag').count() > 10, 'דגלים ליד תרבויות');
+  ok(await p.locator('.diptych .dp img').count() === 2, 'דיפטיכון: שתי יצירות');
+  ok(await p.locator('.diptych img').evaluateAll((im) => im.every((i) => i.complete && i.naturalWidth > 0)), 'היצירות נטענו');
   await p.locator('.stance .st-a').click();
   await p.locator('textarea').fill('בדיקה: טיפה אחרי טיפה');
   ok(await p.locator('.saved').count() === 1, 'חיווי נשמר');

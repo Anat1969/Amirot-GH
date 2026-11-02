@@ -1,4 +1,4 @@
-import{r as p,j as s,f as m,k as o,B as l,h}from"./index-CDTtoPDX.js";const n=l["chg-heraclitus"],r=l["chg-confucius"],d=l["chg-chomei"],t=l["chg-kohelet"],x=l["chg-kohelet2"],j=`לפני כ-2,500 שנה, שני אנשים עמדו ליד שני נהרות.
+import{r as p,j as s,f as m,k as o,B as l,h}from"./index-D5BrSzdP.js";const n=l["chg-heraclitus"],r=l["chg-confucius"],d=l["chg-chomei"],t=l["chg-kohelet"],x=l["chg-kohelet2"],j=`לפני כ-2,500 שנה, שני אנשים עמדו ליד שני נהרות.
 באפסוס, הרקליטוס: אי אפשר להיכנס פעמיים לאותו נהר.
 בסין, קונפוציוס: הכול חולף כמו הנהר הזה, יום ולילה.
 ביניהם ${m(o(n,r))} קילומטר, ואין שום עדות שידעו זה על זה.
