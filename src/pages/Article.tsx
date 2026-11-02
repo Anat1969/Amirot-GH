@@ -1,80 +1,85 @@
-// כתבה מוזיאלית: שני חכמים, נהר אחד. נקראת בגלילה, כמו מגזין (החריג המותר לכלל "בגודל המסך").
-import { BY_ID, km, fmt } from '../engine';
-import { href } from '../route';
-import { useState } from 'react';
+// כתבות: מגזין של גילויים מתוך המאגר. נקראות בגלילה, כמו מגזין (החריג המותר לכלל "בגודל המסך").
+// בחירת כתבה בתוך הדף, והתמונה והטקסט באותו רוחב.
+import { useEffect, useState } from 'react';
+import { ARTICLES, type Article as Art, type Block } from '../data/articles';
+import { ART } from '../data/art';
+import { go } from '../route';
+import Rich from '../Rich';
 
-const H = BY_ID['chg-heraclitus'], C = BY_ID['chg-confucius'], J = BY_ID['chg-chomei'], K = BY_ID['chg-kohelet'], K2 = BY_ID['chg-kohelet2'];
-
-const POST = `לפני כ-2,500 שנה, שני אנשים עמדו ליד שני נהרות.
-באפסוס, הרקליטוס: אי אפשר להיכנס פעמיים לאותו נהר.
-בסין, קונפוציוס: הכול חולף כמו הנהר הזה, יום ולילה.
-ביניהם ${fmt(km(H, C))} קילומטר, ואין שום עדות שידעו זה על זה.
-1,700 שנה אחר כך, נזיר ביפן פתח כך ספר: זרם הנהר אינו פוסק, ואין המים אותם המים.
-וקהלת, בירושלים, אמר את ההפך: אין כל חדש תחת השמש.
-ואז חיבר: דור הולך ודור בא, והארץ לעולם עומדת.
-המים מתחלפים, והגדה נשארת.
-מה אצלך מים, ומה גדה?`;
-
-export default function Article() {
-  const [copied, setCopied] = useState(false);
+export default function Article({ params }: { params: Record<string, string> }) {
+  const a = ARTICLES.find((x) => x.id === params.a) || ARTICLES[0];
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [a.id]);
   return (
     <main className="article-page">
-      <article className="feature">
-        <header className="ft-head">
-          <span className="label">כתבה · הכול זורם, או אין חדש?</span>
-          <h1>שני חכמים,<br />נהר אחד</h1>
-          <p className="ft-sub">במאה החמישית לפני הספירה, בשני קצוות של העולם הידוע, שני אנשים הביטו במים, ואמרו כמעט את אותו משפט.</p>
-        </header>
-
-        <figure className="ft-lead">
-          <RiverArt />
-          <figcaption className="label">איור בקוד: שלושה נהרות, שלוש עדויות. אפסוס Ephesus, צ'ו-פו Qufu וקיוטו Kyoto. הקווים מובילים מהמוקדם (בהיר) למאוחר (כהה).</figcaption>
-        </figure>
-
-        <div className="ft-body">
-          <p className="dropcap"><b>הרקליטוס</b> Heraclitus חי ב<b>אפסוס</b> Ephesus, על חוף אסיה הקטנה. מהספר שכתב נשארו רק קטעים, מצוטטים אצל אחרים. אחד מהם הגיע אלינו דרך אפלטון: "אי אפשר להיכנס פעמיים לאותו נהר".<sup>1</sup></p>
-          <p>באותה מאה, <bdi className="num">{fmt(km(H, C))}</bdi> קילומטר מזרחה, <b>קונפוציוס</b> עמד על גדת נהר. התלמידים רשמו: "הכול חולף כמו הנהר הזה, ואינו פוסק יום ולילה".<sup>2</sup></p>
-          <p>אין שום עדות שאחד מהם שמע על השני. לא הייתה דרך משי, ולא היה תרגום. היה רק נהר.</p>
-
-          <blockquote className="pull">"<span>{J.he}</span>"<cite>קאמו נו צ'ומיי Kamo no Chōmei, <bdi className="num">1212</bdi></cite></blockquote>
-
-          <p><bdi className="num">1,700</bdi> שנה אחר כך, הנזיר <b>קאמו נו צ'ומיי</b> Kamo no Chōmei פתח כך את "רשימות מן הבקתה", ספר על עיר שנשרפה ונבנתה מחדש.<sup>3</sup> אצלו הנהר הוא כבר לא משל: הוא קיוטו עצמה. הבתים מתחלפים, והעיר נשארת.</p>
-          <p>ובאמצע הדרך, בירושלים, <b>קהלת</b> אמר את ההפך: "{K.he}".<sup>4</sup> נראה שזו מחלוקת, אבל באותו פרק הוא כותב: "{K2.he}".<sup>5</sup></p>
-
-          <aside className="tone tone-insight ft-insight"><h4>התובנה</h4><p><mark className="insight">המים מתחלפים, והגדה נשארת.</mark> הרקליטוס הסתכל על המים, וקהלת על הגדה. שניהם תיארו את אותו נהר.</p></aside>
-
-          <h2>בעיר: נחל שנשפך לים</h2>
-          <p><b>נחל לכיש</b> Lachish Stream מגיע לים ב<b>אשדוד</b> Ashdod. המים שזורמים בו היום אינם המים של אתמול, אבל התוואי שלו קובע איפה עוברים הגשרים, איפה הפארק, ואיפה העיר נעצרת. מתכנן ערים עובד בדיוק על התפר הזה: הוא <strong>מתכנן את הגדה</strong> בשביל מים שעוד לא הגיעו.</p>
-
-          <h2>מה עושים עם זה</h2>
-          <p>לפני החלטה, שואלים: מה כאן <strong>מים</strong>, רגע שלא יחזור, ומה כאן <strong>גדה</strong>, דפוס שיחזור? על המים מגיבים מהר. את הגדה בונים לאט.</p>
-
-          <div className="haiku ft-haiku">
-            <span className="label">הייקו</span>
-            <p className="say">רגל במים קרים</p>
-            <p className="say">והנהר כבר אחר</p>
-            <p className="say">רק הגדה זוכרת</p>
-            <p className="src">ההייקו מאיר את הרגע שבו הרקליטוס וקהלת נפגשים: מי שנכנס למים מרגיש את השינוי, והגדה שומרת את הקבוע.</p>
-          </div>
-
-          <div className="ft-post">
-            <div className="post-hd"><span className="label">פוסט, מוכן להעתקה</span><button className="press btn" onClick={async () => { try { await navigator.clipboard.writeText(POST); setCopied(true); } catch { setCopied(false); } }}>{copied ? 'הועתק' : 'העתקה'}</button></div>
-            <div className="post-text">{POST.split('\n').map((l, i) => <p key={i}>{l}</p>)}</div>
-          </div>
-
-          <p className="ft-next"><a className="press btn" href={href('daf', { i: 'change' })}>לדף "הכול זורם, או אין חדש?"</a> <a className="press btn" href={href('mirror', { p: 'chg-heraclitus~chg-confucius' })}>הזוג במראה</a></p>
-
-          <ol className="ft-notes">
-            <li>{H.src}.</li>
-            <li>{C.src}.</li>
-            <li>{J.src}, שורת הפתיחה.</li>
-            <li>{K.src}.</li>
-            <li>{K2.src}.</li>
-          </ol>
-          <p className="src">השראה: צורת הדף של דפוס בומברג, ונציה Venezia, <bdi className="num">1523</bdi>. האיור נבנה בקוד, בלי צילום.</p>
-        </div>
-      </article>
+      <nav className="art-pick" aria-label="בחירת כתבה">
+        {ARTICLES.map((x) => {
+          const img = 'idea' in x.lead ? ART[x.lead.idea]?.a?.file : 'change-b.jpg';
+          return (
+            <button key={x.id} className={`art-card${x.id === a.id ? ' on' : ''}`} aria-pressed={x.id === a.id} onClick={() => go('article', { a: x.id }, true)}>
+              {img && <img src={`./art/${img}`} alt="" loading="lazy" />}
+              <span className="ac-k">{x.kicker}</span>
+              <b>{x.title}</b>
+            </button>
+          );
+        })}
+      </nav>
+      <Feature a={a} key={a.id} />
     </main>
+  );
+}
+
+function Lead({ a }: { a: Art }) {
+  if ('river' in a.lead) return <figure className="ft-lead"><RiverArt /><figcaption className="label">איור בקוד: שלושה נהרות, שלוש עדויות. הקווים מובילים מהמוקדם (בהיר) למאוחר (כהה).</figcaption></figure>;
+  const art = ART[a.lead.idea];
+  return (
+    <figure className="ft-lead ft-dip">
+      {(['a', 'b'] as const).map((k) => art?.[k] && (
+        <div key={k} className={`fd-${k}`}>
+          <img src={`./art/${art[k]!.file}`} alt={art[k]!.title} style={art[k]!.pos ? { objectPosition: art[k]!.pos } : undefined} />
+          <span className="src"><b>{art[k]!.title}</b> · {art[k]!.artist} <span className="en">{art[k]!.artistEn}</span>, {art[k]!.date}</span>
+        </div>
+      ))}
+      <figcaption className="label">מוזיאון קליבלנד לאמנות Cleveland Museum of Art · רישיון CC0</figcaption>
+    </figure>
+  );
+}
+
+function B({ b, first }: { b: Block; first: boolean }) {
+  if ('p' in b) return <Rich as="p" className={first ? 'dropcap' : undefined}>{b.p}</Rich>;
+  if ('h' in b) return <h2>{b.h}</h2>;
+  if ('pull' in b) return <blockquote className="pull">"<span>{b.pull}</span>"<cite>{b.cite}</cite></blockquote>;
+  if ('insight' in b) return <aside className="tone tone-insight ft-insight"><h4>התובנה</h4><Rich as="p">{b.insight}</Rich></aside>;
+  return (
+    <div className="haiku ft-haiku">
+      <span className="label">הייקו</span>
+      {b.haiku.map((l, i) => <p key={i} className="say">{l}</p>)}
+      <p className="src">{b.note}</p>
+    </div>
+  );
+}
+
+function Feature({ a }: { a: Art }) {
+  const [copied, setCopied] = useState(false);
+  const firstP = a.body.findIndex((b) => 'p' in b);
+  return (
+    <article className="feature">
+      <header className="ft-head">
+        <span className="label">{a.kicker}</span>
+        <h1>{a.title}</h1>
+        <p className="ft-sub">{a.sub}</p>
+      </header>
+      <Lead a={a} />
+      <div className="ft-body">
+        {a.body.map((b, i) => <B key={i} b={b} first={i === firstP} />)}
+        <div className="ft-post">
+          <div className="post-hd"><span className="label">פוסט, מוכן להעתקה</span><button className="press btn" onClick={async () => { try { await navigator.clipboard.writeText(a.post); setCopied(true); } catch { setCopied(false); } }}>{copied ? 'הועתק' : 'העתקה'}</button></div>
+          <div className="post-text">{a.post.split('\n').map((l, i) => <p key={i}>{l}</p>)}</div>
+        </div>
+        <p className="ft-next">{a.related.map((r) => <button key={r.label} className="press btn" onClick={() => go(r.page, r.params)}>{r.label}</button>)}</p>
+        <ol className="ft-notes">{a.notes.map((n, i) => <li key={i}>{n}</li>)}</ol>
+        <p className="src">השראה: צורת הדף של דפוס בומברג, ונציה Venezia, <bdi className="num">1523</bdi>.</p>
+      </div>
+    </article>
   );
 }
 

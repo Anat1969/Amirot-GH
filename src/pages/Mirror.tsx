@@ -14,11 +14,12 @@ const valueOf = (s: Pair['a']) => (s.side === 's' ? 'איזון' : VALUES[s.idea
 export default function Mirror({ params }: { params: Record<string, string> }) {
   const [st] = useStore();
   const kind = (params.k && params.k in KINDS ? params.k : 'cousin') as Kind;
-  const cross = params.x !== '0';
+  // תחום הזוגות: בין תרבויות (ברירת מחדל), בתוך אותה תרבות בלבד, או הכול
+  const scope = params.x === 'same' ? 'same' : params.x === 'all' ? 'all' : 'cross';
   const grp = params.g || '';
   const [more, setMore] = useState(60);
   const m = useMemo(() => matcher(st.q), [st.q]);
-  const base = useMemo(() => PAIRS.filter((p) => !cross || p.a.culture !== p.b.culture), [cross]);
+  const base = useMemo(() => PAIRS.filter((p) => scope === 'all' || (scope === 'same' ? p.a.culture === p.b.culture : p.a.culture !== p.b.culture)), [scope]);
   const counts = useMemo(() => { const c = { twin: 0, cousin: 0, impostor: 0, rival: 0 } as Record<Kind, number>; base.forEach((p) => c[p.kind]++); return c; }, [base]);
   const list = useMemo(() => base.filter((p) => p.kind === kind && (!grp || GROUP_OF[p.a.idea] === grp || GROUP_OF[p.b.idea] === grp) && (!m || m(p.a) || m(p.b)))
     .map((p) => ({ p, d: km(p.a, p.b) })).sort((x, y) => y.d - x.d), [base, kind, grp, m]);
@@ -58,7 +59,15 @@ export default function Mirror({ params }: { params: Record<string, string> }) {
             ))}
           </div>
           <Rich as="p" className="insight-line q-interp">{INTERP[kind]}</Rich>
-          <label className="toggle"><input type="checkbox" checked={!cross} onChange={(e) => set({ x: e.target.checked ? '0' : undefined, p: undefined })} /> לכלול זוגות מאותה תרבות</label>
+          <div className="scope" role="group" aria-label="תחום הזוגות">
+            <span className="label">אילו זוגות</span>
+            <div className="chips">
+              {([['cross', 'בין תרבויות'], ['same', 'בתוך אותה תרבות'], ['all', 'הכול']] as const).map(([k, t]) => (
+                <button key={k} className="chip" aria-pressed={scope === k} onClick={() => set({ x: k === 'cross' ? undefined : k, p: undefined })}>{t}</button>
+              ))}
+            </div>
+            {scope === 'same' && <Rich as="p" className="src">{'==תרבות שמדברת עם עצמה==: כאן רואים איפה תרבות אחת אומרת גם וגם.'}</Rich>}
+          </div>
           <div className="tone tone-insight lc-box">
             <h4>שפה אינה תרבות</h4>
             <p><strong>{lc.splits.length}</strong> זוגות באותה שפה, בשתי תרבויות, עם משמעות הפוכה. למשל באנגלית: <b>אנגליה</b> מול <b>ארצות הברית</b>, ובלטינית: <b>רומא</b> מול <b>הכנסייה</b>.</p>
@@ -80,9 +89,9 @@ export default function Mirror({ params }: { params: Record<string, string> }) {
         <div className="scroll-in pair-list">
           {list.slice(0, more).map(({ p, d }) => (
             <button key={pid(p)} className={`pair-row k-${p.kind}${sel === p ? ' on' : ''}`} onClick={() => set({ p: pid(p) })} aria-pressed={sel === p}>
-              <span className="pr-side"><span className="say">"{p.a.he}"</span><span className="pr-c"><Flag c={p.a.culture} />{CULTURE[p.a.culture].he}</span></span>
-              <span className="pr-mid"><i /><bdi className="num">{fmt(d)}</bdi><span className="src">ק"מ</span></span>
-              <span className="pr-side"><span className="say">"{p.b.he}"</span><span className="pr-c"><Flag c={p.b.culture} />{CULTURE[p.b.culture].he}</span></span>
+              <span className="pr-side"><span className="say">"{p.a.nikud || p.a.he}"</span><span className="pr-c"><Flag c={p.a.culture} />{CULTURE[p.a.culture].he}</span></span>
+              <span className="pr-mid"><i /><bdi className="km">{fmt(d)} ק"מ</bdi></span>
+              <span className="pr-side"><span className="say">"{p.b.nikud || p.b.he}"</span><span className="pr-c"><Flag c={p.b.culture} />{CULTURE[p.b.culture].he}</span></span>
             </button>
           ))}
           {list.length > more && <button className="press btn more" onClick={() => setMore((n) => n + 60)}>עוד <bdi className="num">{Math.min(60, list.length - more)}</bdi> זוגות</button>}

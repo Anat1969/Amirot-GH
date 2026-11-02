@@ -88,7 +88,7 @@ function Intro({ idea }: { idea: IdeaT }) {
         {oldest && (
           <figure className="oldest rise">
             <span className="label">העדות הקדומה במאגר</span>
-            <blockquote className="say">"{oldest.he}"</blockquote>
+            <blockquote className="say">"{oldest.nikud || oldest.he}"</blockquote>
             <figcaption className="src"><Flag c={oldest.culture} />{CULTURE[oldest.culture].he}, {oldest.src} · <Yr y={oldest.year} approx={oldest.approx} /></figcaption>
           </figure>
         )}
@@ -304,7 +304,7 @@ function Gloss({ idea, sel, select }: { idea: IdeaT; sel: Saying; select: (s: Sa
               <span className={`rel-k k-${g.k}`}>{KINDS[g.k].he}</span>
               {g.list.slice(0, 6).map((r) => (
                 <button key={r.other.id} className="chip" onClick={() => select(r.other)} title={`"${r.other.he}"${r.note ? ' · ' + r.note : ''}`}>
-                  <Flag c={r.other.culture} />{CULTURE[r.other.culture].he}{r.other.culture !== sel.culture && <span className="num">{fmt(km(sel, r.other))} ק"מ</span>}{r.other.idea !== sel.idea && <span className="src"> · {IDEA[r.other.idea].chip}</span>}
+                  <Flag c={r.other.culture} />{CULTURE[r.other.culture].he}{r.other.culture !== sel.culture && <bdi className="km"> {fmt(km(sel, r.other))} ק"מ</bdi>}{r.other.idea !== sel.idea && <span className="src"> · {IDEA[r.other.idea].chip}</span>}
                 </button>
               ))}
               {g.list.length > 6 && <span className="src">ועוד <bdi className="num">{g.list.length - 6}</bdi></span>}
@@ -382,7 +382,7 @@ function Apply({ idea }: { idea: IdeaT }) {
         </div>
         <details className="sources">
           <summary>מקורות (<bdi className="num">{ss.length}</bdi>)</summary>
-          <ol>{ss.map((s) => <li key={s.id}>"{s.he}": {s.src}</li>)}</ol>
+          <ol>{ss.map((s) => <li key={s.id}>"{s.nikud || s.he}": {s.src}</li>)}</ol>
         </details>
       </div>
     </section>

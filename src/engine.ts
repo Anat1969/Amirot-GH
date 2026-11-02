@@ -194,7 +194,7 @@ export function matcher(q: string) {
 
 
 // ───── עולמות ערכים: מה כל עולם בוחר, ובאיזו עדשה הוא מסתכל ─────
-export const WORLD_ORDER: World[] = ['jewish', 'islam', 'china', 'japan', 'classical', 'christian', 'anglo', 'europe', 'other'];
+export const WORLD_ORDER: World[] = ['jewish', 'islam', 'china', 'japan', 'classical', 'christian', 'anglo', 'europe', 'nordic', 'other'];
 export function worldStats(w: World) {
   const ss = SAYINGS.filter((s) => CULTURE[s.culture].world === w);
   const ideas: Record<string, { a: number; b: number; s: number }> = {};

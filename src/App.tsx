@@ -19,7 +19,7 @@ export default function App() {
       case 'mirror': return <Mirror params={params} />;
       case 'atlas': return <Atlas params={params} />;
       case 'trends': return <Trends params={params} />;
-      case 'article': return <Article />;
+      case 'article': return <Article params={params} />;
       default: return <Home />;
     }
   })();
