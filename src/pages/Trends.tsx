@@ -1,151 +1,188 @@
-// מגמות: מה המנוע מצא במאגר. סתירות פנימיות, משפחות דימוי לפי אזור, וממצאים מחושבים.
+// תובנות: לא כמה, אלא מה זה אומר. עולמות ערכים, עדשות, ושפה מול תרבות.
+// שלוש רמות בתוך הדף: עולם (ימין) ← דיוקן הערכים שלו (מרכז) ← העדויות (שמאל).
 import { useMemo, useState } from 'react';
-import { IDEAS, IDEA, CULTURE, SAYINGS, FAMILIES, familiesOf, matrix, stats, fmt, BY_IDEA } from '../engine';
-import { href } from '../route';
+import { IDEA, CULTURE, SAYINGS, WORLDS, WORLD_ORDER, PORTRAITS, VALUES, LENSES, LENS_LINE, LANGS, langOf, worldStats, langCulture, stats, fmt, type World, type Saying } from '../engine';
+import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
+import Flag from '../components/Flag';
 
-const REGIONS = ['מזרח תיכון', 'אירופה', 'מזרח אסיה', 'דרום אסיה', 'אפריקה', 'אמריקה'] as const;
-
-export default function Trends() {
-  const st = useMemo(stats, []);
-  const mx = useMemo(matrix, []);
-  const [hl, setHl] = useState<string | null>(null);
+export default function Trends({ params }: { params: Record<string, string> }) {
+  const w = (params.w && params.w in WORLDS ? params.w : '') as World | '';
+  const set = (patch: Record<string, string | undefined>) => go('trends', { w: params.w, i: params.i, v: params.v, ...patch }, true);
   const [tab, setTab] = useState('m');
-  const rows = st.cultures.slice().sort((a, b) => Object.values(mx[b.id]).reduce((n, c) => n + c.a + c.b + c.s, 0) - Object.values(mx[a.id]).reduce((n, c) => n + c.a + c.b + c.s, 0));
-  const topSelf = Object.entries(st.both.reduce((r, x) => ((r[x.culture] = (r[x.culture] || 0) + 1), r), {} as Record<string, number>)).sort((a, b) => b[1] - a[1])[0];
   return (
     <main className="app-main trends-page" data-tab={tab}>
-      <div className="tr-tabs" role="tablist" aria-label="חלקי המגמות">
-        {[['m', 'מי אומר מה'], ['f', 'ממצאים'], ['i', 'דימויים']].map(([k, t]) => <button key={k} role="tab" className="chip" aria-pressed={tab === k} aria-selected={tab === k} onClick={() => setTab(k)}>{t}</button>)}
+      <div className="tr-tabs" role="tablist" aria-label="רמות">
+        {[['m', 'עולמות'], ['f', 'דיוקן'], ['i', 'עדויות']].map(([k, t]) => <button key={k} role="tab" className="chip" aria-pressed={tab === k} aria-selected={tab === k} onClick={() => setTab(k)}>{t}</button>)}
       </div>
-      <section className="panel tr-matrix" aria-labelledby="trm">
-        <div className="panel-hd">
-          <h2 id="trm">מי אומר מה: <bdi className="num">{rows.length}</bdi> תרבויות × <bdi className="num">{IDEAS.length}</bdi> מחלוקות</h2>
-          <div className="legend">
-            <span><span className="dot a" />צד א</span><span><span className="dot b" />צד ב</span><span><span className="dot s" />הכרעה</span>
-            <span><i style={{ borderColor: 'var(--ink)', borderTopWidth: 2 }} />מסגרת: שני הצדדים באותה תרבות</span>
-          </div>
+      <aside className="panel tr-matrix tr-worlds">
+        <div className="panel-hd"><span className="label">1 · עולמות</span><h2>מי מאמין במה</h2></div>
+        <div className="panel-bd scroll-in">
+          <button className={`world-row${!w ? ' on' : ''}`} onClick={() => { set({ w: undefined, i: undefined, v: undefined }); setTab('f'); }}>
+            <b>מבט כולל</b><span className="src">מה מחבר את כולם, ושפה מול תרבות</span>
+          </button>
+          {WORLD_ORDER.map((id) => {
+            const ws = worldStats(id);
+            if (!ws.ss.length) return null;
+            const flags = [...new Set(ws.cultures.map((c) => CULTURE[c].flag))];
+            return (
+              <button key={id} className={`world-row${w === id ? ' on' : ''}`} onClick={() => { set({ w: id, i: undefined, v: undefined }); setTab('f'); }}>
+                <span className="wr-hd"><b>{WORLDS[id].he}</b><span className="wr-flags">{flags.map((f) => <img key={f} className="flag" src={`./flags/${f}.svg`} width={16} height={12} alt="" />)}</span><bdi className="num">{ws.ss.length}</bdi></span>
+                <Rich className="wr-head">{PORTRAITS[id].head}</Rich>
+              </button>
+            );
+          })}
         </div>
-        <Rich as="p" className="tr-insight">{`==**${st.selfCultures.size}** תרבויות אומרות גם וגם==. הכי הרבה: **${CULTURE[topSelf[0]].he}**, ב-**${topSelf[1]}** מחלוקות.`}</Rich>
-        <div className="scroll-in mx-wrap">
-          <table className="mx" onMouseLeave={() => setHl(null)}>
-            <thead>
-              <tr><th />{IDEAS.map((i) => <th key={i.id} className={hl === i.id ? 'hl' : ''}><a href={href('daf', { i: i.id })} title={i.q}><span>{i.chip}</span></a></th>)}</tr>
-            </thead>
-            <tbody>
-              {rows.map((c) => (
-                <tr key={c.id}>
-                  <th scope="row"><b>{c.he}</b></th>
-                  {IDEAS.map((i) => {
-                    const cell = mx[c.id][i.id];
-                    const both = cell && cell.a && cell.b;
-                    return (
-                      <td key={i.id} onMouseEnter={() => setHl(i.id)} className={hl === i.id ? 'hl' : ''}>
-                        {cell && (
-                          <a href={href('daf', { i: i.id, s: BY_IDEA[i.id].find((s) => s.culture === c.id)?.id })} className={`cell${both ? ' both' : ''}`} title={`${c.he} · ${i.chip}: ${cell.a} ${i.a}, ${cell.b} ${i.b}${cell.s ? `, ${cell.s} הכרעה` : ''}`}>
-                            <i className="ca" style={{ opacity: cell.a ? 1 : 0 }} /><i className="cb" style={{ opacity: cell.b ? 1 : 0 }} />
-                            {cell.s > 0 && <i className="cs" />}
-                          </a>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="src tr-how">כל משבצת: חצי ימני כחול אם התרבות אומרת את צד א, חצי שמאלי אדום אם את צד ב, ונקודה ירוקה אם היא מכריעה. לחיצה פותחת את הדף.</p>
+      </aside>
+
+      <section className="panel tr-find" aria-live="polite">
+        {w ? <Portrait w={w} sel={params} set={(p) => { set(p); setTab('i'); }} /> : <Overview />}
       </section>
 
-      <section className="panel tr-find" aria-labelledby="trf">
-        <div className="panel-hd"><h2 id="trf">ממצאים</h2><span className="src">מחושבים בקוד מתוך המאגר, לא נכתבו ביד</span></div>
-        <div className="panel-bd scroll-in"><Findings st={st} /></div>
-      </section>
-
-      <section className="panel tr-fam" aria-labelledby="trfam">
-        <div className="panel-hd"><h2 id="trfam">מאיפה לוקחים דימויים</h2><span className="src">אמירות לפי משפחת דימוי ואזור</span></div>
-        <div className="panel-bd scroll-in"><Families /></div>
-      </section>
+      <aside className="panel tr-fam">
+        <Evidence w={w} params={params} />
+      </aside>
     </main>
   );
 }
 
-function Findings({ st }: { st: ReturnType<typeof stats> }) {
+function Overview() {
+  const st = useMemo(stats, []);
+  const lc = useMemo(langCulture, []);
   const [s] = useStore();
-  const universal = st.perIdea.slice().sort((a, b) => b.cultures - a.cultures || b.regions - a.regions)[0];
-  const oldest = SAYINGS.filter((x) => x.year != null).sort((a, b) => (a.year as number) - (b.year as number))[0];
-  const lean = st.perIdea.map((p) => ({ ...p, r: p.a / Math.max(1, p.a + p.b) })).sort((a, b) => Math.abs(b.r - 0.5) - Math.abs(a.r - 0.5))[0];
-  const far = st.farCousin;
-  const totalPairs = Object.values(st.kinds).reduce((a, b) => a + b, 0);
-  const mine = Object.entries(s.stance).filter(([, v]) => v);
-  const mc = { a: 0, b: 0, s: 0 } as Record<string, number>;
-  mine.forEach(([, v]) => (mc[v as string]++));
-  // הנטייה האישית: האם בוחרים בזהירות (המתנה, ודאות, להישאר)
-  const careful = ['haste', 'risk', 'home'].filter((k) => s.stance[k] === 'a').length;
-  const items = [
-    { t: `**${IDEA[universal.idea.id].chip}** הוא הרעיון האוניברסלי ביותר.`, d: `**${universal.cultures}** תרבויות ב-**${universal.regions}** אזורים אומרות אותו.`, link: href('atlas', { i: universal.idea.id }) },
-    { t: `העדות הקדומה: **${CULTURE[oldest.culture].he}**.`, d: `"${oldest.he}" (${oldest.src}).`, year: oldest },
-    far && { t: `המקבילה הרחוקה: **${fmt(far.d)}** ק"מ.`, d: `**${CULTURE[far.p.a.culture].he}** ו**${CULTURE[far.p.b.culture].he}** אומרות את אותו הדבר: "${far.p.a.he}" ו"${far.p.b.he}".`, link: href('mirror', { p: far.p.a.id + '~' + far.p.b.id }) },
-    { t: `==**${Math.round((st.kinds.impostor / totalPairs) * 100)}%** מהזוגות מתחזים==.`, d: `אותן מילים ומשמעות אחרת: **${st.kinds.impostor}** זוגות. דוגמה: טיפה שחוצבת אבן, וטיפה בים.`, link: href('mirror', { k: 'impostor' }) },
-    { t: `המחלוקת הכי לא מאוזנת: **${lean.idea.chip}**.`, d: `${lean.idea.q} **${lean.a}** אמירות בצד "${lean.idea.a}", מול **${lean.b}** בצד "${lean.idea.b}".`, link: href('daf', { i: lean.idea.id }) },
-    { t: `**${st.dated}** אמירות מתוארכות, ו-**${SAYINGS.length - st.dated}** עממיות.`, d: 'לפתגם עממי אין תאריך במאגר. ניחוש לא מוצג כעובדה.' },
-  ].filter(Boolean) as { t: string; d: string; link?: string; year?: (typeof SAYINGS)[number] }[];
+  const all = WORLD_ORDER.map(worldStats).filter((x) => x.ss.length);
+  const ratio = (x: ReturnType<typeof worldStats>) => x.both.length / Math.max(1, Object.keys(x.ideas).length);
+  const dial = all.slice().sort((a, b) => ratio(b) - ratio(a));
+  const calm = all.filter((x) => x.ss.length >= 10 && x.both.length === 0);
+  const lensAll: Record<string, number> = {};
+  Object.values(LENSES).forEach((ls) => ls.forEach((l) => (lensAll[l.lens] = (lensAll[l.lens] || 0) + l.c.length)));
+  const topLens = Object.entries(lensAll).sort((a, b) => b[1] - a[1]);
+  const universal = st.perIdea.slice().sort((a, b) => b.cultures - a.cultures)[0];
+  const syn = SAYINGS.filter((x) => x.side === 's');
+  const synWorlds = Object.entries(syn.reduce((r, x) => ((r[CULTURE[x.culture].world] = (r[CULTURE[x.culture].world] || 0) + 1), r), {} as Record<string, number>)).sort((a, b) => b[1] - a[1]);
+  const mine = Object.values(s.stance).filter(Boolean) as string[];
+  const items: { t: string; d: string }[] = [
+    { t: `==סתירה היא לא באג. היא שיטה.==`, d: `**${dial[0] && WORLDS[dial[0].w].he}** מחזיקה בשני הצדדים ב-**${dial[0].both.length}** מתוך **${Object.keys(dial[0].ideas).length}** מחלוקות, ו**${WORLDS[dial[1].w].he}** ב-**${dial[1].both.length}** מתוך **${Object.keys(dial[1].ideas).length}**. תרבות שמחזיקה גם וגם, נותנת לאדם כלי לכל מצב.` },
+    calm.length ? { t: `**${calm.map((x) => WORLDS[x.w].he).join(', ')}**: ==אף סתירה פנימית אחת==.`, d: 'הפתגמים בוחרים צד ונשארים בו: איפוק, ענווה והתמדה. זו תרבות של דרך אחת, ולא של ויכוח.' } : { t: '', d: '' },
+    { t: `**${syn.length}** אמירות מחזיקות ==בשני הצדדים יחד==.`, d: `הכי הרבה ב**${WORLDS[synWorlds[0][0] as World].he}** (**${synWorlds[0][1]}**). זו ההכרעה של המסורות עצמן: "מהר לאט", "קשור את הגמל", "הכול צפוי והרשות נתונה".` },
+    { t: `העדשה הנפוצה: **${topLens[0][0]}**, ואחריה **${topLens[1][0]}**.`, d: `רוב התרבויות מסבירות מושג מופשט ${LENS_LINE[topLens[0][0] as keyof typeof LENS_LINE]}. ==את התובנות הן לוקחות מהעולם הסובב, לא מהגדרות==.` },
+    { t: `==שפה אינה תרבות==.`, d: `**${lc.sharedLangs.length}** שפות מדוברות כאן ביותר מתרבות אחת. בלטינית כתבו רומאים, נזירים הולנדים, האפיפיור ופרנסיס בייקון האנגלי. ביוונית: הומרוס, הנצרות ויהדות אלכסנדריה.` },
+    { t: `ולהפך: ==תרבות אחת, הרבה שפות==.`, d: `**${WORLDS[lc.multiLangWorlds[0].world].he}** מדברת כאן ב-**${lc.multiLangWorlds[0].langs.length}** שפות: ${lc.multiLangWorlds[0].langs.map((l) => LANGS[l]).join(', ')}. הדגלים לידה מתחלפים בין ארצות, והערכים נשארים.` },
+    { t: `**${universal.idea.chip}** הוא הרעיון האוניברסלי ביותר.`, d: `**${universal.cultures}** תרבויות ב-**${universal.regions}** אזורים. ==מה שכולם אומרים, הוא כנראה ניסיון אנושי ולא מסורת==.` },
+    { t: `**${fmt(st.kinds.impostor)}** זוגות מתחזים.`, d: 'אותן מילים ומשמעות אחרת. ==מי שמתרגם מילה במילה, מתרגם לא נכון==.' },
+    mine.length ? { t: `**הנטייה שלי**: ${mine.filter((x) => x === 'a').length} צד א, ${mine.filter((x) => x === 'b').length} צד ב, ${mine.filter((x) => x === 's').length} תלוי.`, d: 'נאסף מ"הצד שלי היום" בכל דף. ככל שיש יותר "תלוי", כך הבחירה קרובה יותר לדרך של המסורות.' } : { t: '**הנטייה שלי**: עוד לא נבחר צד.', d: 'בכל דף, באזור 3, אפשר לבחור צד. הבחירות נאספות כאן לדיוקן אישי.' },
+  ].filter((x) => x.t);
   return (
-    <ol className="finds">
-      {items.map((x, i) => (
-        <li key={i}>
-          <span className="fn">{i + 1}</span>
-          <div>
-            <Rich as="p" className="ft">{x.t}</Rich>
-            <p className="fd"><Rich>{x.d}</Rich>{x.year && <> <Yr y={x.year.year} approx={x.year.approx} /></>}{x.link && <> <a href={x.link}>לפתיחה</a></>}</p>
+    <div className="panel-bd scroll-in ov">
+      <span className="label">2 · מבט כולל</span>
+      <h1 className="ov-title">מה המאגר מלמד על עולמות ערכים</h1>
+      <p className="explain">פרשנות של Claude על <bdi className="num">{SAYINGS.length}</bdi> אמירות מ-<bdi className="num">{st.cultures.length}</bdi> תרבויות. מדגם קטן: זו קריאה ולא סקר.</p>
+      <ol className="finds">
+        {items.map((x, i) => (
+          <li key={i}><span className="fn">{i + 1}</span><div><Rich as="p" className="ft">{x.t}</Rich><Rich as="p" className="fd">{x.d}</Rich></div></li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function Portrait({ w, sel, set }: { w: World; sel: Record<string, string>; set: (p: Record<string, string | undefined>) => void }) {
+  const ws = useMemo(() => worldStats(w), [w]);
+  const p = PORTRAITS[w];
+  const vals = Object.entries(ws.values).sort((a, b) => b[1].n - a[1].n);
+  const maxV = Math.max(1, ...vals.map(([, v]) => v.n));
+  const lens = Object.entries(ws.lens).sort((a, b) => b[1] - a[1]);
+  const maxL = Math.max(1, ...lens.map(([, n]) => n));
+  const covered = Object.keys(ws.ideas).length;
+  return (
+    <div className="panel-bd scroll-in pt">
+      <span className="label">2 · דיוקן ערכים</span>
+      <h1 className="ov-title">{WORLDS[w].he}</h1>
+      <p className="src">{WORLDS[w].line} · <bdi className="num">{ws.ss.length}</bdi> אמירות</p>
+      <Rich as="p" className="insight-line pt-head">{p.head}</Rich>
+      {p.body.map((b, i) => <Rich key={i} as="p" className="pt-body">{b}</Rich>)}
+      <div className="pt-facts">
+        <div><span className="label">סתירה פנימית</span><b className="num">{ws.both.length}/{covered}</b><span className="src">{ws.both.length / covered > 0.5 ? 'מחזיקה בשני הצדדים ברוב המחלוקות' : ws.both.length ? 'לפעמים גם וגם' : 'בוחרת צד אחד'}</span></div>
+        <div><span className="label">הכרעות</span><b className="num">{ws.syn}</b><span className="src">{ws.syn ? 'אומרת את שני הצדדים במשפט אחד' : 'אין במאגר'}</span></div>
+        <div><span className="label">שפות</span><b className="num">{ws.langs.length}</b><span className="src">{ws.langs.map((l) => LANGS[l]).join(', ')}</span></div>
+      </div>
+      <h3 className="pt-h">הערכים שהעולם הזה בוחר</h3>
+      <p className="src">כל פס = כמה אמירות בוחרות בערך. כחול: צד א של המחלוקת, אדום: צד ב. לחיצה מציגה את העדויות.</p>
+      <div className="vbars">
+        {vals.map(([v, x]) => (
+          <button key={v} className={`vbar${sel.v === v ? ' on' : ''}`} onClick={() => set({ v, i: undefined })}>
+            <span className="vb-name">{v}</span>
+            <span className="vb-track"><i className={`s-${x.side}`} style={{ width: `${(x.n / maxV) * 100}%` }} /></span>
+            <bdi className="num">{x.n}</bdi>
+            <span className="vb-idea src">{IDEA[x.idea].chip}</span>
+          </button>
+        ))}
+      </div>
+      <h3 className="pt-h">העדשה: דרך מה העולם הזה מסביר</h3>
+      <div className="vbars">
+        {lens.map(([l, n]) => (
+          <div key={l} className="vbar static">
+            <span className="vb-name"><span className={`lens-tag lt-${l}`}>{l}</span></span>
+            <span className="vb-track"><i className="lens" style={{ width: `${(n / maxL) * 100}%` }} /></span>
+            <bdi className="num">{n}</bdi>
+            <span className="vb-idea src">{LENS_LINE[l as keyof typeof LENS_LINE]}</span>
           </div>
-        </li>
-      ))}
-      <li className="mine-f">
-        <span className="fn">{items.length + 1}</span>
-        <div>
-          <p className="ft"><strong>הנטייה שלי</strong></p>
-          {mine.length ? (
-            <p className="fd">בחרת צד ב-<bdi className="num">{mine.length}</bdi> מחלוקות: <span className="side-a">צד א <bdi className="num">{mc.a}</bdi></span> · <span className="side-b">צד ב <bdi className="num">{mc.b}</bdi></span> · <span className="side-s">תלוי <bdi className="num">{mc.s}</bdi></span>.{careful >= 2 ? ' הדפוס: זהירות. המתנה, ודאות ובית.' : ''}</p>
-          ) : <p className="fd">עוד לא בחרת צד. בכל דף, באזור 3 "יישום", יש "הצד שלי היום", והוא נשמר כאן.</p>}
+        ))}
+      </div>
+      {ws.both.length > 0 && <>
+        <h3 className="pt-h">המחלוקות הפנימיות</h3>
+        <div className="chips">
+          {ws.both.map((i) => <button key={i} className="chip" aria-pressed={sel.i === i} onClick={() => set({ i, v: undefined })}>{IDEA[i].chip}</button>)}
         </div>
-      </li>
-    </ol>
+      </>}
+    </div>
   );
 }
 
-function Families() {
-  const data = useMemo(() => {
-    const m: Record<string, Record<string, number>> = {};
-    for (const s of SAYINGS) for (const f of familiesOf(s)) { const r = (m[f] ||= {}); const reg = CULTURE[s.culture].region; r[reg] = (r[reg] || 0) + 1; }
-    return m;
-  }, []);
-  const max = Math.max(...FAMILIES.flatMap((f) => REGIONS.map((r) => data[f.id]?.[r] || 0)));
-  const regTotal = Object.fromEntries(REGIONS.map((r) => [r, SAYINGS.filter((s) => CULTURE[s.culture].region === r).length]));
-  const top = REGIONS.filter((r) => regTotal[r] >= 8).map((r) => ({ r, f: FAMILIES.slice().sort((a, b) => (data[b.id]?.[r] || 0) - (data[a.id]?.[r] || 0))[0] }));
+function Evidence({ w, params }: { w: World | ''; params: Record<string, string> }) {
+  const [open, setOpen] = useState<string | null>(null);
+  let title = '', list: Saying[] = [];
+  if (w && params.v) {
+    const ws = worldStats(w);
+    title = `"${params.v}" ב${WORLDS[w].he}`;
+    list = ws.ss.filter((s) => s.side !== 's' && VALUES[s.idea][s.side] === params.v);
+  } else if (w && params.i) {
+    title = `${IDEA[params.i].q} · בתוך ${WORLDS[w].he}`;
+    list = worldStats(w).ss.filter((s) => s.idea === params.i);
+  } else if (w) {
+    title = `ההכרעות של ${WORLDS[w].he}`;
+    list = worldStats(w).ss.filter((s) => s.side === 's');
+    if (!list.length) { title = `כל האמירות של ${WORLDS[w].he}`; list = worldStats(w).ss; }
+  } else {
+    title = 'אמירות שמחזיקות בשני הצדדים';
+    list = SAYINGS.filter((s) => s.side === 's');
+  }
   return (
-    <>
-      <table className="fam">
-        <thead><tr><th />{REGIONS.map((r) => <th key={r}>{r}<br /><span className="src"><bdi className="num">{regTotal[r]}</bdi></span></th>)}</tr></thead>
-        <tbody>
-          {FAMILIES.map((f) => (
-            <tr key={f.id}>
-              <th scope="row">{f.he}</th>
-              {REGIONS.map((r) => {
-                const n = data[f.id]?.[r] || 0;
-                return <td key={r} style={{ background: n ? `rgba(26,26,24,${0.08 + (n / max) * 0.8})` : undefined, color: n / max > 0.45 ? '#fff' : undefined }}>{n ? <bdi className="num">{n}</bdi> : ''}</td>;
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="src fam-scale"><span className="sc-lo" /> מעט <span className="sc-hi" /> הרבה · מספר = אמירות עם דימוי מהמשפחה</p>
-      <ul className="fam-top">
-        {top.map(({ r, f }) => <li key={r}><b>{r}</b>: הכי הרבה <strong>{f.he}</strong></li>)}
-      </ul>
-    </>
+    <div className="panel-bd scroll-in ev">
+      <span className="label">3 · עדויות</span>
+      <h2 className="ev-title">{title}</h2>
+      {list.map((s) => {
+        const on = open === s.id;
+        const lens = (LENSES[s.idea] || []).find((l) => l.c.includes(s.culture));
+        return (
+          <div key={s.id} className={`cc-row s-${s.side}${on ? ' on' : ''}`}>
+            <button className="cc-btn" onClick={() => setOpen(on ? null : s.id)} aria-expanded={on}>
+              <span className={`say${s.nikud ? ' nikud' : ''}`}>"{s.nikud || s.he}"</span>
+              <span className="src"><Flag c={s.culture} />{CULTURE[s.culture].he} · {IDEA[s.idea].chip} · <Yr y={s.year} approx={s.approx} /></span>
+            </button>
+            {on && (
+              <div className="cc-more">
+                {s.orig && <p className="orig" lang={s.lang} dir="auto">"{s.orig}"</p>}
+                <p className="src">{LANGS[langOf(s)]} · {s.src}</p>
+                {lens && <p className="gloss-lens"><span className={`lens-tag lt-${lens.lens}`}>{lens.lens}</span><Rich>{lens.t}</Rich></p>}
+                <button className="linkish" onClick={() => go('daf', { i: s.idea, s: s.id })}>לדף של "{IDEA[s.idea].chip}"</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {!list.length && <p className="explain">אין עדויות בבחירה הזאת.</p>}
+    </div>
   );
 }
-

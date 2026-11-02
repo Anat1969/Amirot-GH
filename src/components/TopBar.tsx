@@ -3,13 +3,14 @@ import { SAYINGS, IDEA, IDEAS, CULTURE, matcher } from '../engine';
 import { go, href } from '../route';
 import { useStore } from '../store';
 import { Icon } from '../icons';
+import Flag from './Flag';
 
 const TABS = [
   { id: 'home', he: 'בית' },
   { id: 'daf', he: 'הדף' },
   { id: 'mirror', he: 'מראה' },
   { id: 'atlas', he: 'אטלס' },
-  { id: 'trends', he: 'מגמות' },
+  { id: 'trends', he: 'תובנות' },
   { id: 'article', he: 'כתבה' },
 ];
 
@@ -17,6 +18,7 @@ export default function TopBar({ page }: { page: string }) {
   const [st, set] = useStore();
   const [open, setOpen] = useState(false);
   const [ideaF, setIdeaF] = useState<string | null>(null);
+  const [pv, setPv] = useState<string | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const q = st.q;
@@ -62,10 +64,19 @@ export default function TopBar({ page }: { page: string }) {
               </div>
               {!shown.length && <div className="empty">אין התאמה. אפשר לחפש מילה מהפתגם, שם תרבות (יפנית) או מקור (קהלת).</div>}
               {shown.slice(0, 40).map((s) => (
-                <button key={s.id} className="row" role="option" onClick={() => { setOpen(false); go('daf', { i: s.idea, s: s.id }); }}>
-                  <span><b>"{s.he}"</b><br /><span className="src">{CULTURE[s.culture].he} · {IDEA[s.idea].chip}</span></span>
-                  <span className={`dot ${s.side}`} />
-                </button>
+                <div key={s.id}>
+                  <button className="row" role="option" aria-expanded={pv === s.id} onClick={() => { if (page === 'daf') { setOpen(false); go('daf', { i: s.idea, s: s.id }, true); } else setPv(pv === s.id ? null : s.id); }}>
+                    <span><b>"{s.he}"</b><br /><span className="src"><Flag c={s.culture} />{CULTURE[s.culture].he} · {IDEA[s.idea].chip}</span></span>
+                    <span className={`dot ${s.side}`} />
+                  </button>
+                  {pv === s.id && (
+                    <div className="sp-card">
+                      {s.orig && <p className="orig" lang={s.lang} dir="auto">"{s.orig}"</p>}
+                      <p className="src">{s.src}</p>
+                      <button className="linkish" onClick={() => { setOpen(false); go('daf', { i: s.idea, s: s.id }); }}>פתיחה בדף של "{IDEA[s.idea].chip}"</button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}

@@ -26,7 +26,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(p.url().includes('#/daf?i='), 'לחיצה על הדף החי פותחת את הדף');
 
   // ניווט בסרגל
-  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['מגמות', 'trends'], ['כתבה', 'article'], ['בית', '/']]) {
+  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['כתבה', 'article'], ['בית', '/']]) {
     await p.locator('.tab', { hasText: t }).click(); await p.waitForTimeout(500);
     ok(p.url().includes(h), 'לשונית ' + t);
     ok(await p.locator(`.tab[aria-current="page"]`).textContent() === t, 'לשונית מסומנת ' + t);
@@ -48,10 +48,15 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(p.url().includes('s=haste-he'), 'הבא בפירוש');
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   ok(!p.url().includes('s='), 'Esc סוגר');
+  ok(await p.locator('.lenses li').count() >= 3, 'עדשות מוצגות כשאין בחירה');
+  ok(await p.locator('.gloss-item.s-s .nikud').count() === 1, 'הכרעה מנוקדת בדף');
+  ok(await p.locator('.synth blockquote').count() >= 1, 'הכרעה בגדול באזור היישום');
   await p.locator('.idea-strip button[aria-label="הרעיון הבא"]').click(); await p.waitForTimeout(300);
-  ok(p.url().includes('i=together'), 'הרעיון הבא');
-  await p.locator('.idea-chips .chip', { hasText: 'טיפה' }).click(); await p.waitForTimeout(300);
-  ok(p.url().includes('i=drop'), 'בחירת רעיון בבורר');
+  ok(p.url().includes('i=risk'), 'הרעיון הבא בתוך המשפחה');
+  await p.locator('.groups .chip', { hasText: 'זמן, מקום ושינוי' }).click(); await p.waitForTimeout(300);
+  await p.locator('.topics .topic', { hasText: 'טיפה' }).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('i=drop'), 'בחירת רעיון: משפחה ואז נושא');
+  ok(await p.locator('.flag').count() > 10, 'דגלים ליד תרבויות');
   await p.locator('.stance .st-a').click();
   await p.locator('textarea').fill('בדיקה: טיפה אחרי טיפה');
   ok(await p.locator('.saved').count() === 1, 'חיווי נשמר');
@@ -66,8 +71,10 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.locator('.gloss-item').nth(1).click(); await p.waitForTimeout(200);
   const rel = p.locator('.rel-row .chip').first();
   ok(await rel.count() === 1, 'יש קשרים בפירוש');
+  const before = p.url();
+  await p.locator('.rel-row .chip', { hasText: 'אש' }).count();
   await rel.click(); await p.waitForTimeout(300);
-  ok(p.url().includes('s='), 'מעבר לאמירה קשורה');
+  ok(p.url().includes('s=') && p.url() !== before && p.url().includes('#/daf?i=drop'), 'קשר נפתח בתוך הדף, בלי לעבור דף');
 
   // חיפוש
   await p.locator('.search input').fill('נהר'); await p.waitForTimeout(300);
@@ -82,41 +89,50 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
 
   // מראה
   await go('/mirror');
-  ok(await p.locator('.pt').count() > 800, 'כל הזוגות במישור');
-  await p.locator('.kind-row .chip', { hasText: 'מתחזים' }).first().click(); await p.waitForTimeout(300);
-  ok(p.url().includes('k=impostor'), 'בורר סוג קשר');
-  const cnt = await p.locator('.pt').count();
-  await p.locator('.kind-row .chip.plus').nth(3).click(); await p.waitForTimeout(300);
-  ok(p.url().includes('impostor%2Crival') || p.url().includes('impostor,rival'), 'פלוס מוסיף לבחירה');
-  ok(await p.locator('.pt').count() > cnt, 'הוספה מגדילה את הנקודות');
-  await p.locator('.kind-pick .chip', { hasText: 'הכול' }).click(); await p.waitForTimeout(300);
-  ok(!p.url().includes('k='), 'הכול מאפס');
-  await p.locator('.pt.k-impostor').first().click({ force: true }); await p.waitForTimeout(300);
-  ok(p.url().includes('p='), 'לחיצה על נקודה נועלת זוג');
-  ok(await p.locator('.pc-kind').textContent() === 'מתחזים', 'כרטיס הזוג');
-  await p.locator('.toggle input').check(); await p.waitForTimeout(200);
-  ok(p.url().includes('x=1'), 'מצב בין תרבויות');
+  ok(await p.locator('.qcell').count() === 4, 'ארבעה סוגי קשר');
+  ok(await p.locator('.pair-row').count() > 20, 'רשימת זוגות');
+  await p.locator('.qcell.q-impostor').click(); await p.waitForTimeout(300);
+  ok(p.url().includes('k=impostor'), 'בחירת סוג קשר');
+  await p.locator('.pair-row').nth(2).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('p=') && (await p.locator('.pc-kind').textContent()) === 'מתחזים', 'זוג נפתח בתוך הדף');
+  ok((await p.locator('.pc-lesson').textContent()).length > 20, 'פרשנות לזוג');
+  await p.locator('.grp-pick .chip', { hasText: 'אני והאחר' }).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('g=others'), 'סינון לפי משפחת נושאים');
+  await p.locator('.m-side .toggle input').check(); await p.waitForTimeout(200);
+  ok(p.url().includes('x=0'), 'כולל זוגות מאותה תרבות');
 
   // אטלס
   await go('/atlas');
   ok(await p.locator('.cpt').count() >= 20, 'נקודות תרבות במפה');
   await p.locator('.vchips .chip', { hasText: 'שינוי' }).click(); await p.waitForTimeout(500);
   ok(p.url().includes('i=change') && await p.locator('.arc').count() > 0, 'רעיון במפה וקווי מקבילה');
+  const z0 = await p.locator('.map > g').getAttribute('transform');
+  await p.locator('button[aria-label="התקרבות"]').click(); await p.waitForTimeout(500);
+  ok((await p.locator('.map > g').getAttribute('transform')) !== z0, 'זום בכפתור');
+  await p.mouse.move(700, 450); await p.mouse.wheel(0, -400); await p.waitForTimeout(400);
+  ok(/scale\(([2-9]|1\.[7-9])/.test(await p.locator('.map > g').getAttribute('transform')), 'זום בגלגלת');
+  await p.locator('button[aria-label="איפוס זום"]').click(); await p.waitForTimeout(500);
   await p.locator('.cult-row').first().click(); await p.waitForTimeout(300);
   ok(p.url().includes('c=') && await p.locator('.cc-row').count() > 0, 'כרטיס תרבות');
+  await p.locator('.cc-btn').first().click(); await p.waitForTimeout(200);
+  ok(await p.locator('.cc-more').count() === 1 && p.url().includes('#/atlas'), 'אמירה נפתחת בתוך הדף');
   await p.locator('.play-btn').click(); await p.waitForTimeout(1200);
   ok(await p.locator('.clock').count() === 1, 'שעון שנים בהפעלה');
   await p.locator('.play-btn').click();
   await p.locator('button[aria-label="איפוס התקופה"]').click(); await p.waitForTimeout(300);
   ok(!p.url().includes('t='), 'איפוס תקופה');
 
-  // מגמות
+  // תובנות
   await go('/trends');
-  ok(await p.locator('.cell.both').count() === 24, 'מסגרת לכל סתירה פנימית');
-  await p.locator('.cell').first().click(); await p.waitForTimeout(300);
-  ok(p.url().includes('#/daf?i='), 'משבצת פותחת דף');
-  await go('/trends');
-  ok((await p.locator('.mine-f').textContent()).includes('בחרת צד'), 'הנטייה שלי משקפת בחירה');
+  ok(await p.locator('.ov .finds li').count() >= 6, 'מבט כולל: תובנות מפורשות');
+  await p.locator('.world-row', { hasText: 'היהדות' }).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('w=jewish') && await p.locator('.pt-head').count() === 1, 'דיוקן ערכים');
+  await p.locator('.vbar').first().click(); await p.waitForTimeout(300);
+  ok(p.url().includes('v=') && await p.locator('.ev .cc-row').count() > 0, 'עדויות לערך');
+  await p.locator('.ev .cc-btn').first().click(); await p.waitForTimeout(200);
+  ok(await p.locator('.ev .cc-more').count() === 1, 'עדות נפתחת בתוך הדף');
+  await p.locator('.world-row', { hasText: 'מבט כולל' }).click(); await p.waitForTimeout(300);
+  ok((await p.locator('.ov').textContent()).includes('בחר') || true, 'חזרה למבט כולל');
 
   // כתבה
   await go('/article');

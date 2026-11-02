@@ -1,20 +1,26 @@
 // הדף: רעיון אחד בצורת דף גמרא. במרכז השאלה, מימין צד א, משמאל צד ב, ולמטה ההכרעה.
+// חקירה בתוך הדף בשלוש רמות: משפחת נושאים ← רעיון ← אמירה. קשר לרעיון אחר נפתח כאן, בלי לעבור דף.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { BY_IDEA, BY_ID, IDEA, IDEAS, CULTURE, KINDS, relationsOf, where, km, fmt, matcher, type Saying, type Kind } from '../engine';
+import { BY_IDEA, BY_ID, IDEA, IDEAS, CULTURE, KINDS, GROUPS, GROUP_OF, VALUES, LENSES, LANGS, langOf, relationsOf, where, km, fmt, matcher, type Saying, type Kind } from '../engine';
 import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
 import { Icon } from '../icons';
 import Voice from '../components/Voice';
+import Flag, { CultureName } from '../components/Flag';
+import { Diptych } from '../components/Art';
 
 const SIDE_HE = { a: 'צד א', b: 'צד ב', s: 'הכרעה' } as const;
+type IdeaT = (typeof IDEAS)[number];
 
 export default function Daf({ params }: { params: Record<string, string> }) {
   const idea = IDEA[params.i] || IDEAS[0];
-  const sel = params.s && BY_ID[params.s]?.idea === idea.id ? BY_ID[params.s] : null;
+  const sel = params.s && BY_ID[params.s] ? BY_ID[params.s] : null;
   const [tab, setTab] = useState('2');
-  const ix = IDEAS.indexOf(idea);
-  const nav = (d: number) => go('daf', { i: IDEAS[(ix + d + IDEAS.length) % IDEAS.length].id }, true);
+  const group = GROUPS.find((g) => g.id === GROUP_OF[idea.id])!;
+  const order = GROUPS.flatMap((g) => g.ideas);
+  const ix = order.indexOf(idea.id);
+  const nav = (d: number) => go('daf', { i: order[(ix + d + order.length) % order.length] }, true);
   const select = (s: Saying | null) => go('daf', { i: idea.id, s: s?.id }, true);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
@@ -29,12 +35,22 @@ export default function Daf({ params }: { params: Record<string, string> }) {
     <main className="app-main daf-page">
       <div className="idea-strip no-print">
         <button className="press icon-btn" onClick={() => nav(-1)} aria-label="הרעיון הקודם" title="הרעיון הקודם"><Icon name="prev" /></button>
-        <div className="chips idea-chips" role="group" aria-label="בחירת רעיון">
-          {IDEAS.map((i) => (
-            <button key={i.id} className="chip" aria-pressed={i.id === idea.id} onClick={() => go('daf', { i: i.id }, true)}>{i.chip}</button>
+        <div className="groups" role="group" aria-label="משפחות נושאים">
+          {GROUPS.map((g) => (
+            <button key={g.id} className="chip grp" aria-pressed={g.id === group.id} onClick={() => go('daf', { i: g.ideas[0] }, true)}>{g.he}</button>
           ))}
         </div>
-        <span className="label"><bdi className="num">{ix + 1}/{IDEAS.length}</bdi></span>
+        <div className="topics" role="group" aria-label={`רעיונות: ${group.he}`}>
+          {group.ideas.map((id) => {
+            const i = IDEA[id];
+            return (
+              <button key={id} className="topic" aria-pressed={id === idea.id} onClick={() => go('daf', { i: id }, true)}>
+                <Icon name={i.motif} size={18} /><span>{i.chip}</span>
+              </button>
+            );
+          })}
+        </div>
+        <span className="label"><bdi className="num">{ix + 1}/{order.length}</bdi></span>
         <button className="press icon-btn" onClick={() => nav(1)} aria-label="הרעיון הבא" title="הרעיון הבא"><Icon name="next" /></button>
       </div>
 
@@ -53,24 +69,27 @@ export default function Daf({ params }: { params: Record<string, string> }) {
   );
 }
 
-function Intro({ idea }: { idea: (typeof IDEAS)[number] }) {
+function Intro({ idea }: { idea: IdeaT }) {
   const ss = BY_IDEA[idea.id];
   const oldest = ss.filter((s) => s.year != null).sort((a, b) => (a.year as number) - (b.year as number))[0];
+  const v = VALUES[idea.id];
   return (
     <section className="panel zone" data-zone="1" aria-labelledby="z1">
       <div className="zone-hd"><span className="zone-n">1</span><h2 id="z1">היכרות</h2><span className="label">מה זה</span></div>
       <div className="panel-bd scroll-in lines-lg" key={idea.id}>
+        <Diptych idea={idea.id} a={idea.a} b={idea.b} />
         <div className="idea-title rise">
           <Icon name={idea.motif} size={30} />
           <h1>{idea.q}</h1>
         </div>
+        <p className="values rise"><span className="side-a">צד א: <b>{v.a}</b></span><span className="sep">מול</span><span className="side-b">צד ב: <b>{v.b}</b></span></p>
         <Rich as="p" className="insight-line rise">{idea.insight}</Rich>
         <Rich as="p" className="explain rise">{idea.explain}</Rich>
         {oldest && (
           <figure className="oldest rise">
             <span className="label">העדות הקדומה במאגר</span>
             <blockquote className="say">"{oldest.he}"</blockquote>
-            <figcaption className="src">{CULTURE[oldest.culture].he}, {oldest.src} · <Yr y={oldest.year} approx={oldest.approx} /></figcaption>
+            <figcaption className="src"><Flag c={oldest.culture} />{CULTURE[oldest.culture].he}, {oldest.src} · <Yr y={oldest.year} approx={oldest.approx} /></figcaption>
           </figure>
         )}
         <div className="story rise">
@@ -89,13 +108,14 @@ function Intro({ idea }: { idea: (typeof IDEAS)[number] }) {
 
 type Line = { d: string; cls: string; len: number };
 
-function Understand({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: Saying | null; select: (s: Saying | null) => void }) {
+function Understand({ idea, sel, select }: { idea: IdeaT; sel: Saying | null; select: (s: Saying | null) => void }) {
   const [st] = useStore();
   const ss = BY_IDEA[idea.id];
   const A = ss.filter((s) => s.side === 'a'), B = ss.filter((s) => s.side === 'b'), S = ss.filter((s) => s.side === 's');
   const m = useMemo(() => matcher(st.q), [st.q]);
   const [hover, setHover] = useState<string | null>(null);
-  const focus = hover || sel?.id || null;
+  const inIdea = sel && sel.idea === idea.id ? sel : null;
+  const focus = hover || inIdea?.id || null;
   const wrap = useRef<HTMLDivElement>(null);
   const core = useRef<HTMLDivElement>(null);
   const items = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -112,7 +132,7 @@ function Understand({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: 
       if (!box.width) return;
       const cr = c.getBoundingClientRect();
       const L: Line[] = [];
-      const rel = (r: DOMRect) => ({ l: r.left - box.left, r: r.right - box.left, t: r.top - box.top, b: r.bottom - box.top, cy: r.top - box.top + r.height / 2, cx: r.left - box.left + r.width / 2 });
+      const rel = (r: DOMRect) => ({ l: r.left - box.left + el.scrollLeft, r: r.right - box.left + el.scrollLeft, t: r.top - box.top + el.scrollTop, b: r.bottom - box.top + el.scrollTop, cy: r.top - box.top + el.scrollTop + r.height / 2, cx: r.left - box.left + el.scrollLeft + r.width / 2 });
       const C = rel(cr);
       const stacked = getComputedStyle(el).getPropertyValue('--stacked').trim() === '1';
       if (!stacked) {
@@ -144,7 +164,7 @@ function Understand({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: 
           }
         }
       }
-      setSize({ w: box.width, h: box.height });
+      setSize({ w: el.scrollWidth, h: el.scrollHeight });
       setLines(L);
     };
     draw();
@@ -155,18 +175,17 @@ function Understand({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: 
 
   const tilt = Math.max(-9, Math.min(9, ((A.length - B.length) / Math.max(1, A.length + B.length)) * 18));
   const Item = (s: Saying) => {
-    const c = CULTURE[s.culture];
     const dim = m && !m(s);
     const kind = focus && focus !== s.id ? rels.find((r) => r.other.id === s.id)?.kind : undefined;
     return (
       <button
         key={s.id} ref={(n) => { items.current[s.id] = n; }}
-        className={`gloss-item s-${s.side}${sel?.id === s.id ? ' on' : ''}${dim ? ' dim' : ''}${kind ? ' k-' + kind : ''}`}
+        className={`gloss-item s-${s.side}${inIdea?.id === s.id ? ' on' : ''}${dim ? ' dim' : ''}${kind ? ' k-' + kind : ''}`}
         onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(s.id)} onBlur={() => setHover(null)}
-        onClick={() => select(sel?.id === s.id ? null : s)} aria-pressed={sel?.id === s.id}
+        onClick={() => select(inIdea?.id === s.id ? null : s)} aria-pressed={inIdea?.id === s.id}
       >
-        <span className="say">"{s.he}"</span>
-        <span className="meta"><b>{c.he}</b><Yr y={s.year} approx={s.approx} /></span>
+        <span className={`say${s.nikud ? ' nikud' : ''}`}>"{s.nikud || s.he}"</span>
+        <span className="meta"><Flag c={s.culture} /><b>{CULTURE[s.culture].he}</b><Yr y={s.year} approx={s.approx} /></span>
         {kind && <span className="kind-tag">{KINDS[kind].he}</span>}
       </button>
     );
@@ -217,45 +236,64 @@ function Understand({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: 
             </div>
           )}
         </div>
-        <Gloss idea={idea} sel={sel} select={select} />
+        {sel ? <Gloss idea={idea} sel={sel} select={select} /> : <Lenses idea={idea} />}
       </div>
     </section>
   );
 }
 
-function Gloss({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: Saying | null; select: (s: Saying | null) => void }) {
+// עדשות: איך כל תרבות מסגרת את אותו מושג. זו שכבת הפרשנות.
+function Lenses({ idea }: { idea: IdeaT }) {
+  const ls = LENSES[idea.id] || [];
+  return (
+    <div className="gloss lenses" key={idea.id}>
+      <div className="lens-hd"><span className="label">עדשות · איך כל תרבות רואה את זה</span><span className="src">פרשנות של Claude על סמך המקורות. לחיצה על אמירה פותחת אותה כאן.</span></div>
+      <ul>
+        {ls.map((l, i) => (
+          <li key={i}>
+            <span className={`lens-tag lt-${l.lens}`}>{l.lens}</span>
+            <span className="lens-c">{l.c.map((c) => <Flag key={c} c={c} />)}<b>{l.c.map((c) => CULTURE[c].he).join(', ')}</b></span>
+            <Rich className="lens-t">{l.t}</Rich>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Gloss({ idea, sel, select }: { idea: IdeaT; sel: Saying; select: (s: Saying | null) => void }) {
   const ss = BY_IDEA[idea.id];
-  if (!sel) {
-    return (
-      <div className="gloss gloss-empty">
-        <span className="label">מה השרטוט מראה</span>
-        <p>כל קו מחבר אמירה לשאלה שבמרכז. <strong>כחול</strong> מימין הוא צד א, <strong>אדום</strong> משמאל הוא צד ב, ו<strong>ירוק</strong> למטה מחזיק בשניהם.</p>
-        <p>המאזניים נוטים לצד שיש לו יותר עדויות. ריחוף על אמירה מצייר את הקשרים שלה; לחיצה פותחת אותה כאן.</p>
-      </div>
-    );
-  }
+  const foreign = sel.idea !== idea.id;
   const c = CULTURE[sel.culture];
   const w = where(sel);
   const rels = relationsOf(sel.id);
   const groups = (Object.keys(KINDS) as Kind[]).map((k) => ({ k, list: rels.filter((r) => r.kind === k) })).filter((g) => g.list.length);
   const i = ss.indexOf(sel);
+  const lens = (LENSES[sel.idea] || []).find((l) => l.c.includes(sel.culture));
+  const sIdea = IDEA[sel.idea];
+  const sideName = sel.side === 'a' ? sIdea.a : sel.side === 'b' ? sIdea.b : 'מחזיק בשניהם';
   return (
-    <div className="gloss" key={sel.id}>
+    <div className={`gloss${foreign ? ' foreign' : ''}`} key={sel.id}>
       <div className="gloss-ctl">
-        <span className="label"><bdi className="num">{i + 1}/{ss.length}</bdi></span>
-        <button className="press icon-btn" onClick={() => select(ss[(i - 1 + ss.length) % ss.length])} aria-label="האמירה הקודמת" title="הקודמת"><Icon name="prev" size={14} /></button>
-        <button className="press icon-btn" onClick={() => select(ss[(i + 1) % ss.length])} aria-label="האמירה הבאה" title="הבאה"><Icon name="next" size={14} /></button>
+        {!foreign && <>
+          <span className="label"><bdi className="num">{i + 1}/{ss.length}</bdi></span>
+          <button className="press icon-btn" onClick={() => select(ss[(i - 1 + ss.length) % ss.length])} aria-label="האמירה הקודמת" title="הקודמת"><Icon name="prev" size={14} /></button>
+          <button className="press icon-btn" onClick={() => select(ss[(i + 1) % ss.length])} aria-label="האמירה הבאה" title="הבאה"><Icon name="next" size={14} /></button>
+        </>}
         <button className="press icon-btn" onClick={() => select(null)} aria-label="סגירה" title="סגירה (Esc)"><Icon name="x" size={14} /></button>
       </div>
       <div className="gloss-grid">
         <div>
-          <span className={`label side-${sel.side}`}>{SIDE_HE[sel.side]} · {sel.side === 'a' ? idea.a : sel.side === 'b' ? idea.b : 'מחזיק בשניהם'}{sel.orig ? ' · תרגום' : ''}</span>
-          <p className="say gloss-say">"{sel.he}"</p>
+          {foreign && <p className="foreign-note">מרעיון אחר: <b>{sIdea.q}</b> <button className="linkish" onClick={() => go('daf', { i: sel.idea, s: sel.id })}>מעבר לדף שלו</button></p>}
+          <span className={`label side-${sel.side}`}>{SIDE_HE[sel.side]} · {sideName} · ערך: {sel.side === 's' ? 'איזון' : VALUES[sel.idea][sel.side]}{sel.orig ? ' · תרגום' : ''}</span>
+          <p className={`say gloss-say${sel.nikud ? ' nikud' : ''}`}>"{sel.nikud || sel.he}"</p>
           {sel.orig && <p className="orig" lang={sel.lang} dir="auto">"{sel.orig}"</p>}
           {sel.note && <p className="gloss-note"><mark className="insight">{sel.note}</mark></p>}
+          {lens && <p className="gloss-lens"><span className={`lens-tag lt-${lens.lens}`}>{lens.lens}</span><Rich>{lens.t}</Rich></p>}
         </div>
         <dl className="facts">
-          <div><dt className="label">תרבות</dt><dd><b>{c.he}</b><span className="en">{c.en}</span></dd></div>
+          <div><dt className="label">תרבות</dt><dd><CultureName c={sel.culture} en /></dd></div>
+          <div><dt className="label">שפה</dt><dd><b>{LANGS[langOf(sel)]}</b></dd></div>
           <div><dt className="label">מקום</dt><dd><b>{w.he}</b><span className="en">{w.en}</span></dd></div>
           <div><dt className="label">שנה</dt><dd><Yr y={sel.year} approx={sel.approx} /></dd></div>
           <div className="wide"><dt className="label">מקור</dt><dd className="src">{sel.src}</dd></div>
@@ -265,8 +303,8 @@ function Gloss({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: Sayin
             <div key={g.k} className="rel-row">
               <span className={`rel-k k-${g.k}`}>{KINDS[g.k].he}</span>
               {g.list.slice(0, 6).map((r) => (
-                <button key={r.other.id} className="chip" onClick={() => (r.other.idea === idea.id ? select(r.other) : go('daf', { i: r.other.idea, s: r.other.id }))} title={`"${r.other.he}"${r.note ? ' · ' + r.note : ''}`}>
-                  {CULTURE[r.other.culture].he}{r.other.culture !== sel.culture && <span className="num">{fmt(km(sel, r.other))} ק"מ</span>}{r.other.idea !== idea.id && <span className="src"> · {IDEA[r.other.idea].chip}</span>}
+                <button key={r.other.id} className="chip" onClick={() => select(r.other)} title={`"${r.other.he}"${r.note ? ' · ' + r.note : ''}`}>
+                  <Flag c={r.other.culture} />{CULTURE[r.other.culture].he}{r.other.culture !== sel.culture && <span className="num">{fmt(km(sel, r.other))} ק"מ</span>}{r.other.idea !== sel.idea && <span className="src"> · {IDEA[r.other.idea].chip}</span>}
                 </button>
               ))}
               {g.list.length > 6 && <span className="src">ועוד <bdi className="num">{g.list.length - 6}</bdi></span>}
@@ -278,7 +316,7 @@ function Gloss({ idea, sel, select }: { idea: (typeof IDEAS)[number]; sel: Sayin
   );
 }
 
-function Apply({ idea }: { idea: (typeof IDEAS)[number] }) {
+function Apply({ idea }: { idea: IdeaT }) {
   const [st, set] = useStore();
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -292,10 +330,22 @@ function Apply({ idea }: { idea: (typeof IDEAS)[number] }) {
     try { await navigator.clipboard.writeText(text); setCopied(true); } catch { setShowPost(true); }
   };
   const ss = BY_IDEA[idea.id];
+  const syn = ss.filter((s) => s.side === 's');
   return (
     <section className="panel zone" data-zone="3" aria-labelledby="z3">
       <div className="zone-hd"><span className="zone-n">3</span><h2 id="z3">יישום</h2><span className="label">מה עושים</span></div>
       <div className="panel-bd scroll-in apply" key={idea.id}>
+        {syn.length > 0 && (
+          <div className="synth rise">
+            <span className="label side-s">ההכרעה של המסורת</span>
+            {syn.map((s) => (
+              <figure key={s.id}>
+                <blockquote className="say nikud">"{s.nikud || s.he}"</blockquote>
+                <figcaption className="src"><Flag c={s.culture} />{CULTURE[s.culture].he} · {s.src}</figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
         <div className="tone tone-solution rule rise">
           <h4>כלל ההכרעה</h4>
           <p><span className="dot a" /><strong className="side-a">{idea.a}</strong> <Rich>{idea.rule.a}</Rich></p>

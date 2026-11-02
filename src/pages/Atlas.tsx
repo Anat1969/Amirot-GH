@@ -3,12 +3,18 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { geoEqualEarth, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
 import land110 from 'world-atlas/land-110m.json';
-import { SAYINGS, IDEAS, IDEA, CULTURES, CULTURE, PAIRS, matcher, type Saying } from '../engine';
-import { go, href } from '../route';
+import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom';
+import { select } from 'd3-selection';
+import 'd3-transition';
+import { SAYINGS, IDEAS, IDEA, CULTURES, CULTURE, PAIRS, WORLDS, PORTRAITS, LANGS, LENSES, VALUES, langOf, matcher, type Saying } from '../engine';
+import { go } from '../route';
 import { useStore } from '../store';
-import { Yr } from '../Rich';
+import Rich, { Yr } from '../Rich';
 import { Icon } from '../icons';
+import Flag from '../components/Flag';
 
+const REG_HE: Record<string, string> = { 'מזרח תיכון': 'המזרח התיכון' };
+const rh = (r: string) => REG_HE[r] || r;
 const LAND = feature(land110 as any, (land110 as any).objects.land) as any;
 const MIN = -1800, MAX = 2026;
 
@@ -38,6 +44,14 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
     return r;
   }, [list]);
   const regions = new Set(list.map((s) => CULTURE[s.culture].region)).size;
+  // פרשנות של הנתונים: לא רק כמה, אלא מה זה אומר
+  const regCount: Record<string, number> = {};
+  list.forEach((s) => (regCount[CULTURE[s.culture].region] = (regCount[CULTURE[s.culture].region] || 0) + 1));
+  const topReg = Object.entries(regCount).sort((a, b) => b[1] - a[1]);
+  const aN = list.filter((s) => s.side === 'a').length, bN = list.filter((s) => s.side === 'b').length;
+  const reading = !list.length ? '' : idea
+    ? `**${idea.chip}** נאמר ב-**${regions}** אזורים. ${regions >= 4 ? '==רעיון אוניברסלי==: הוא לא שייך לתרבות אחת.' : '==רעיון אזורי==: רוב העדויות ב' + rh(topReg[0][0]) + '.'} ${aN > bN * 1.5 ? `העולם נוטה ל**${idea.a}**.` : bN > aN * 1.5 ? `העולם נוטה ל**${idea.b}**.` : 'שני הצדדים מאוזנים.'}`
+    : `**${rh(topReg[0][0])}** ו**${rh(topReg[1]?.[0] || '')}** מחזיקים ב-**${Math.round(((topReg[0][1] + (topReg[1]?.[1] || 0)) / list.length) * 100)}%** מהאמירות. ==המאגר נשען על מסורות כתובות ותיקות==, ופחות על תרבויות שבעל פה.`;
 
   return (
     <main className="app-main atlas-page">
@@ -67,6 +81,7 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
         <div className="panel-hd">
           <h2>{idea ? idea.q : 'כל הרעיונות'}</h2>
           <span className="src"><bdi className="num">{list.length}</bdi> אמירות · <bdi className="num">{Object.keys(byCulture).length}</bdi> תרבויות · <bdi className="num">{regions}</bdi> אזורים</span>
+          {reading && <Rich as="p" className="insight-line at-reading">{reading}</Rich>}
           <div className="legend at-legend">
             <span><span className="dot a" />{idea ? idea.a : 'צד א'}</span><span><span className="dot b" />{idea ? idea.b : 'צד ב'}</span><span><span className="dot s" />הכרעה</span>
             {idea && <span><i style={{ borderColor: 'var(--side-a)' }} />מקבילה בין תרבויות</span>}
@@ -85,7 +100,7 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
               const x = byCulture[c.id];
               return (
                 <button key={c.id} className="cult-row" onClick={() => set({ c: c.id })}>
-                  <span><b>{c.he}</b><span className="en">{c.en}</span></span>
+                  <span><Flag c={c.id} /><b>{c.he}</b><span className="en">{c.en}</span></span>
                   <span className="bar3"><i className="a" style={{ flex: x.a }} /><i className="b" style={{ flex: x.b }} /><i className="s" style={{ flex: x.s }} /></span>
                   <bdi className="num">{x.n}</bdi>
                 </button>
@@ -101,8 +116,20 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
 
 function MapView({ byCulture, list, idea, cult, onCult, clock }: { byCulture: Record<string, { a: number; b: number; s: number; n: number }>; list: Saying[]; idea: string | null; cult: string | null; onCult: (c: string) => void; clock: number | null }) {
   const box = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const zb = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [sz, setSz] = useState({ w: 800, h: 420 });
   const [hover, setHover] = useState<string | null>(null);
+  const [tf, setTf] = useState({ x: 0, y: 0, k: 1 });
+  // זום בגלגלת ובגרירה, וכפתורים: המידע הצפוף במזרח התיכון נפרד כשמתקרבים
+  useEffect(() => {
+    const z = d3zoom<SVGSVGElement, unknown>().scaleExtent([1, 10]).on('zoom', (e) => setTf({ x: e.transform.x, y: e.transform.y, k: e.transform.k }));
+    zb.current = z;
+    select(svgRef.current!).call(z);
+    return () => { select(svgRef.current!).on('.zoom', null); };
+  }, []);
+  const zoomBy = (f: number) => zb.current && select(svgRef.current!).transition().duration(300).call(zb.current.scaleBy, f);
+  const zoomReset = () => zb.current && select(svgRef.current!).transition().duration(300).call(zb.current.transform, zoomIdentity);
   useLayoutEffect(() => {
     const el = box.current!;
     const ro = new ResizeObserver(() => setSz({ w: el.clientWidth, h: el.clientHeight }));
@@ -120,8 +147,9 @@ function MapView({ byCulture, list, idea, cult, onCult, clock }: { byCulture: Re
   const placed: { x: number; y: number }[] = [];
   const showLabel = new Set<string>();
   for (const p of [...pts].sort((a, b) => b.v.n - a.v.n)) {
-    if (placed.every((q) => Math.abs(q.x - p.x) > 70 || Math.abs(q.y - p.y) > 18)) { placed.push(p); showLabel.add(p.c.id); }
+    if (placed.every((q) => Math.abs(q.x - p.x) * tf.k > 86 || Math.abs(q.y - p.y) * tf.k > 18)) { placed.push(p); showLabel.add(p.c.id); }
   }
+  const k = tf.k;
   // קווי מקבילה: אותו צד באותו רעיון, בין תרבויות, מהמוקדם (בהיר) למאוחר (כהה)
   const arcs = idea ? PAIRS.filter((p) => p.a.idea === idea && p.b.idea === idea && p.meaning > 0.8 && p.a.culture !== p.b.culture && list.includes(p.a) && list.includes(p.b)) : [];
   const xy = (s: Saying) => { const c = CULTURE[s.culture]; return proj([c.lon, c.lat]) as [number, number]; };
@@ -137,8 +165,9 @@ function MapView({ byCulture, list, idea, cult, onCult, clock }: { byCulture: Re
   };
   return (
     <div className="map-box" ref={box}>
-      <svg width={sz.w} height={sz.h} className="map" style={{ direction: 'ltr' }} aria-label="מפת העולם עם נקודה לכל תרבות">
-        <path d={path(LAND) || ''} className="land" />
+      <svg ref={svgRef} width={sz.w} height={sz.h} className="map" style={{ direction: 'ltr' }} aria-label="מפת העולם עם נקודה לכל תרבות. גלגלת: זום, גרירה: הזזה">
+        <g transform={`translate(${tf.x},${tf.y}) scale(${k})`}>
+        <path d={path(LAND) || ''} className="land" style={{ strokeWidth: 0.6 / k }} />
         <path d={path({ type: 'Sphere' } as any) || ''} className="sphere" />
         <defs>
           <marker id="arr" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6z" style={{ fill: 'var(--side-a)' }} /></marker>
@@ -147,18 +176,29 @@ function MapView({ byCulture, list, idea, cult, onCult, clock }: { byCulture: Re
           const [o, n] = (p.a.year ?? 9999) <= (p.b.year ?? 9999) ? [p.a, p.b] : [p.b, p.a];
           const [x1, y1] = xy(o), [x2, y2] = xy(n);
           const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - Math.hypot(x2 - x1, y2 - y1) * 0.25;
-          return <path key={i} d={`M${x1} ${y1}Q${mx} ${my} ${x2} ${y2}`} className={`arc ink k-${p.kind}`} markerEnd="url(#arr)" style={{ ['--len' as string]: 1400 }} />;
+          return <path key={i} d={`M${x1} ${y1}Q${mx} ${my} ${x2} ${y2}`} className={`arc ink k-${p.kind}`} markerEnd="url(#arr)" style={{ ['--len' as string]: 1400, strokeWidth: 1.6 / k }} />;
         })}
         {pts.map((p) => (
           <g key={p.c.id} className={`cpt${cult === p.c.id ? ' on' : ''}`} onClick={() => onCult(p.c.id)} onMouseEnter={() => setHover(p.c.id)} onMouseLeave={() => setHover(null)}>
-            <circle cx={p.x} cy={p.y} r={p.r + 2} className="halo" />
-            {pie(p.x, p.y, p.r, p.v)}
-            {(showLabel.has(p.c.id) || hover === p.c.id || cult === p.c.id) && <text x={p.x + p.r + 4} y={p.y + 4} className="clabel">{p.c.he}</text>}
+            <circle cx={p.x} cy={p.y} r={(p.r + 2) / Math.sqrt(k)} className="halo" />
+            {pie(p.x, p.y, p.r / Math.sqrt(k), p.v)}
+            {(showLabel.has(p.c.id) || hover === p.c.id || cult === p.c.id) && (
+              <g transform={`translate(${p.x + p.r / Math.sqrt(k) + 4 / k},${p.y}) scale(${1 / k})`}>
+                <image href={`./flags/${p.c.flag}.svg`} x={0} y={-6} width={16} height={12} />
+                <text x={20} y={4} className="clabel">{p.c.he}</text>
+              </g>
+            )}
           </g>
         ))}
+        </g>
       </svg>
+      <div className="zoom-ctl">
+        <button className="press icon-btn" onClick={() => zoomBy(1.6)} aria-label="התקרבות" title="התקרבות (גם בגלגלת)"><Icon name="plus" size={14} /></button>
+        <button className="press icon-btn" onClick={() => zoomBy(1 / 1.6)} aria-label="התרחקות" title="התרחקות"><Icon name="minus" size={14} /></button>
+        <button className="press icon-btn" onClick={zoomReset} aria-label="איפוס זום" title="כל העולם"><Icon name="reset" size={14} /></button>
+      </div>
       {clock != null && <div className="clock" aria-live="off"><b className="num">{Math.abs(clock)}</b><span>{clock < 0 ? 'לפנה״ס' : 'לספירה'}</span></div>}
-      <a className="src map-note" href={href('trends')}>נקודה היא מקום מייצג של התרבות, ולא טענה שהאמירה נאמרה שם.</a>
+      <p className="src map-note">גלגלת: זום · גרירה: הזזה · נקודה היא מקום מייצג של התרבות, והדגל הוא של המקום היום.</p>
     </div>
   );
 }
@@ -187,19 +227,38 @@ function Timeline({ list, from, to }: { list: Saying[]; from: number; to: number
 
 function CultureCard({ id, list, onClose }: { id: string; list: Saying[]; onClose: () => void }) {
   const c = CULTURE[id];
+  const [open, setOpen] = useState<string | null>(null);
+  const langs = [...new Set(list.map(langOf))].map((l) => LANGS[l]);
+  const p = PORTRAITS[c.world];
   return (
     <div className="panel-bd scroll-in cc">
       <div className="cc-hd">
-        <h2>{c.he}<span className="en">{c.en}</span></h2>
+        <h2><Flag c={id} size={18} />{c.he}<span className="en">{c.en}</span></h2>
         <button className="press icon-btn" onClick={onClose} aria-label="סגירה" title="סגירה"><Icon name="x" size={14} /></button>
       </div>
-      <p className="src">מקום מייצג: <b>{c.place}</b> {c.placeEn} · אזור: {c.region}</p>
-      {list.map((s) => (
-        <a key={s.id} className={`cc-row s-${s.side}`} href={href('daf', { i: s.idea, s: s.id })}>
-          <span className="say">"{s.he}"</span>
-          <span className="src">{IDEA[s.idea].chip} · <Yr y={s.year} approx={s.approx} /></span>
-        </a>
-      ))}
+      <p className="src">מקום מייצג: <b>{c.place}</b> {c.placeEn} · עולם: {WORLDS[c.world].he} · שפות כאן: {langs.join(', ') || '—'}</p>
+      {p && <Rich as="p" className="insight-line cc-head">{p.head}</Rich>}
+      {list.map((s) => {
+        const on = open === s.id;
+        const lens = (LENSES[s.idea] || []).find((l) => l.c.includes(s.culture));
+        return (
+          <div key={s.id} className={`cc-row s-${s.side}${on ? ' on' : ''}`}>
+            <button className="cc-btn" onClick={() => setOpen(on ? null : s.id)} aria-expanded={on}>
+              <span className={`say${s.nikud ? ' nikud' : ''}`}>"{s.nikud || s.he}"</span>
+              <span className="src">{IDEA[s.idea].chip} · {s.side === 's' ? 'הכרעה' : VALUES[s.idea][s.side]} · <Yr y={s.year} approx={s.approx} /></span>
+            </button>
+            {on && (
+              <div className="cc-more">
+                {s.orig && <p className="orig" lang={s.lang} dir="auto">"{s.orig}"</p>}
+                <p className="src">{LANGS[langOf(s)]} · {s.src}</p>
+                {lens && <p className="gloss-lens"><span className={`lens-tag lt-${lens.lens}`}>{lens.lens}</span><Rich>{lens.t}</Rich></p>}
+                {s.note && <p><mark className="insight">{s.note}</mark></p>}
+                <button className="linkish" onClick={() => go('daf', { i: s.idea, s: s.id })}>לדף של "{IDEA[s.idea].chip}"</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
       {!list.length && <p className="explain">בסינון הנוכחי אין אמירות מהתרבות הזאת.</p>}
     </div>
   );

@@ -17,6 +17,7 @@ export type Saying = {
   motifs: string[];
   at?: { he: string; en: string; lat: number; lon: number }; // מקום מדויק, כשידוע
   note?: string;
+  nikud?: string; // נוסח מנוקד, לאמירות ההכרעה שמוצגות בגדול
 };
 
 const EPHESUS = { he: 'אפסוס', en: 'Ephesus', lat: 37.94, lon: 27.34 };
@@ -36,7 +37,7 @@ export const SAYINGS: Saying[] = [
   { id: 'haste-iron-fr', idea: 'haste', side: 'b', he: 'צריך להכות בברזל כל עוד הוא חם', orig: 'Il faut battre le fer pendant qu\'il est chaud', lang: 'fr', culture: 'french', src: 'פתגם צרפתי', year: null, motifs: ['ברזל', 'חום'] },
   { id: 'haste-carpe', idea: 'haste', side: 'b', he: 'קטוף את היום', orig: 'Carpe diem', lang: 'la', culture: 'latin', src: 'הורטיוס Horace, אודות 1.11', year: -23, motifs: ['יום', 'קטיף'] },
   { id: 'haste-tide', idea: 'haste', side: 'b', he: 'הזמן והגאות אינם מחכים לאיש', orig: 'Time and tide wait for no man', lang: 'en', culture: 'english', src: 'פתגם אנגלי', year: null, motifs: ['מים', 'זמן'] },
-  { id: 'haste-festina', idea: 'haste', side: 's', he: 'מהר לאט', orig: 'Festina lente  ·  σπεῦδε βραδέως', lang: 'la', culture: 'latin', src: 'סוטוניוס Suetonius, חיי אוגוסטוס 25: אמרתו של הקיסר', year: 121, approx: true, motifs: ['מהירות'] },
+  { id: 'haste-festina', idea: 'haste', side: 's', he: 'מהר לאט', orig: 'Festina lente  ·  σπεῦδε βραδέως', lang: 'la', culture: 'latin', src: 'סוטוניוס Suetonius, חיי אוגוסטוס 25: אמרתו של הקיסר', year: 121, approx: true, motifs: ['מהירות'], nikud: 'מַהֵר לְאַט' },
 
   // ───── יחד או לבד ─────
   { id: 'tog-kohelet', idea: 'together', side: 'a', he: 'טובים השניים מן האחד', culture: 'bible', src: 'קהלת ד, ט', year: -250, approx: true, motifs: ['מספר'] },
@@ -67,7 +68,7 @@ export const SAYINGS: Saying[] = [
   // ───── שתיקה ודיבור ─────
   { id: 'sil-akiva', idea: 'silence', side: 'a', he: 'סייג לחכמה — שתיקה', culture: 'mishna', src: 'רבי עקיבא, משנה אבות ג, יג', year: 120, approx: true, motifs: ['שתיקה', 'גדר'] },
   { id: 'sil-sela', idea: 'silence', side: 'a', he: 'מילה — בסלע, שתיקה — בשניים', orig: 'מילה בסלע, משתוקא בתרין', lang: 'arc', culture: 'bavli', src: 'מגילה יח ע"א', year: 500, approx: true, motifs: ['שתיקה', 'כסף'] },
-  { id: 'sil-carlyle', idea: 'silence', side: 'a', he: 'הדיבור — כסף, השתיקה — זהב', orig: 'Speech is silvern, Silence is golden', lang: 'en', culture: 'english', src: 'תומס קרלייל Thomas Carlyle, Sartor Resartus', year: 1836, motifs: ['שתיקה', 'כסף'] },
+  { id: 'sil-carlyle', idea: 'silence', side: 'a', he: 'הדיבור — כסף, השתיקה — זהב', orig: 'Speech is silvern, Silence is golden', lang: 'en', culture: 'scotland', src: 'תומס קרלייל Thomas Carlyle, Sartor Resartus', year: 1836, motifs: ['שתיקה', 'כסף'] },
   { id: 'sil-laozi', idea: 'silence', side: 'a', he: 'היודע אינו מדבר, המדבר אינו יודע', orig: '知者不言，言者不知', lang: 'zh', culture: 'chinese', src: 'לאו-דזה, דאו דה ג\'ינג 56', year: -400, approx: true, motifs: ['שתיקה'], at: LUOYANG },
   { id: 'sil-jp-flower', idea: 'silence', side: 'a', he: 'מה שלא נאמר — הוא הפרח', orig: '言わぬが花', lang: 'ja', culture: 'japanese', src: 'פתגם יפני', year: null, motifs: ['שתיקה', 'פרח'] },
   { id: 'sil-jp-nail', idea: 'silence', side: 'a', he: 'היתד הבולטת חוטפת מכה', orig: '出る杭は打たれる', lang: 'ja', culture: 'japanese', src: 'פתגם יפני', year: null, motifs: ['יתד', 'מכה'] },
@@ -76,8 +77,8 @@ export const SAYINGS: Saying[] = [
   { id: 'sil-hillel', idea: 'silence', side: 'b', he: 'לא הביישן למד', culture: 'mishna', src: 'הלל, משנה אבות ב, ה', year: -20, approx: true, motifs: [] },
   { id: 'sil-ar', idea: 'silence', side: 'b', he: 'השותק מול האמת — שטן אילם', orig: 'الساكت عن الحق شيطان أخرس', lang: 'ar', culture: 'arabic', src: 'אמרה ערבית', year: null, motifs: ['שתיקה', 'שטן'] },
   { id: 'sil-consent', idea: 'silence', side: 'b', he: 'שתיקה כהודאה דמיא', culture: 'bavli', src: 'יבמות פז ע"ב', year: 500, approx: true, motifs: ['שתיקה'], note: 'שתיקה אינה מגינה: היא נחשבת הסכמה.' },
-  { id: 'sil-tacet', idea: 'silence', side: 'b', he: 'מי ששותק — נראה כמסכים', orig: 'Qui tacet consentire videtur', lang: 'la', culture: 'latin', src: 'בוניפאקיוס השמיני, Liber Sextus, כלל 43', year: 1298, motifs: ['שתיקה'] },
-  { id: 'sil-kohelet', idea: 'silence', side: 's', he: 'עת לחשות ועת לדבר', culture: 'bible', src: 'קהלת ג, ז', year: -250, approx: true, motifs: ['שתיקה', 'זמן'] },
+  { id: 'sil-tacet', idea: 'silence', side: 'b', he: 'מי ששותק — נראה כמסכים', orig: 'Qui tacet consentire videtur', lang: 'la', culture: 'church', src: 'בוניפאקיוס השמיני, Liber Sextus, כלל 43', year: 1298, motifs: ['שתיקה'] },
+  { id: 'sil-kohelet', idea: 'silence', side: 's', he: 'עת לחשות ועת לדבר', culture: 'bible', src: 'קהלת ג, ז', year: -250, approx: true, motifs: ['שתיקה', 'זמן'], nikud: 'עֵת לַחֲשׁוֹת וְעֵת לְדַבֵּר' },
 
   // ───── חזות ─────
   { id: 'look-kankan', idea: 'looks', side: 'a', he: 'אל תסתכל בקנקן, אלא במה שיש בו', culture: 'mishna', src: 'רבי מאיר, משנה אבות ד, כ', year: 150, approx: true, motifs: ['כלי', 'מבט'] },
@@ -86,21 +87,21 @@ export const SAYINGS: Saying[] = [
   { id: 'look-juvenal', idea: 'looks', side: 'a', he: 'אין אמון בחזות', orig: 'Fronti nulla fides', lang: 'la', culture: 'latin', src: 'יובנאליס Juvenal, סאטירות 2, 8', year: 110, approx: true, motifs: ['פנים'] },
   { id: 'look-gold', idea: 'looks', side: 'a', he: 'לא כל הנוצץ זהב', orig: 'All that glisters is not gold', lang: 'en', culture: 'english', src: 'שייקספיר Shakespeare, הסוחר מוונציה', year: 1596, motifs: ['זהב', 'ברק'] },
   { id: 'look-gold-ar', idea: 'looks', side: 'a', he: 'לא כל מה שמבריק — זהב', orig: 'ليس كل ما يلمع ذهبا', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: ['זהב', 'ברק'] },
-  { id: 'look-keller', idea: 'looks', side: 'b', he: 'בגדים עושים אנשים', orig: 'Kleider machen Leute', lang: 'de', culture: 'german', src: 'פתגם גרמני; שם הנובלה של גוטפריד קלר Gottfried Keller', year: 1874, motifs: ['בגד'] },
-  { id: 'look-erasmus', idea: 'looks', side: 'b', he: 'הבגד עושה את האיש', orig: 'Vestis virum facit', lang: 'la', culture: 'latin', src: 'ארסמוס Erasmus, אדגיה', year: 1508, approx: true, motifs: ['בגד'] },
+  { id: 'look-keller', idea: 'looks', side: 'b', he: 'בגדים עושים אנשים', orig: 'Kleider machen Leute', lang: 'de', culture: 'swiss', src: 'פתגם גרמני; שם הנובלה של גוטפריד קלר Gottfried Keller', year: 1874, motifs: ['בגד'] },
+  { id: 'look-erasmus', idea: 'looks', side: 'b', he: 'הבגד עושה את האיש', orig: 'Vestis virum facit', lang: 'la', culture: 'dutch', src: 'ארסמוס Erasmus, אדגיה', year: 1508, approx: true, motifs: ['בגד'] },
   { id: 'look-yochanan', idea: 'looks', side: 'b', he: 'רבי יוחנן קרא לבגדיו "מכבדותיי"', orig: 'רבי יוחנן קרי למאניה מכבדותי', lang: 'arc', culture: 'bavli', src: 'שבת קיג ע"א', year: 500, approx: true, motifs: ['בגד', 'כבוד'] },
   { id: 'look-jp', idea: 'looks', side: 'b', he: 'גם עגלון הסוסים — בבגדים נאים', orig: '馬子にも衣装', lang: 'ja', culture: 'japanese', src: 'פתגם יפני', year: null, motifs: ['בגד', 'סוס'] },
-  { id: 'look-ru', idea: 'looks', side: 's', he: 'מקבלים לפי הבגד, מלווים לפי השכל', orig: 'По одёжке встречают, по уму провожают', lang: 'ru', culture: 'russian', src: 'פתגם רוסי', year: null, motifs: ['בגד'] },
+  { id: 'look-ru', idea: 'looks', side: 's', he: 'מקבלים לפי הבגד, מלווים לפי השכל', orig: 'По одёжке встречают, по уму провожают', lang: 'ru', culture: 'russian', src: 'פתגם רוסי', year: null, motifs: ['בגד'], nikud: 'מְקַבְּלִים לְפִי הַבֶּגֶד, מְלַוִּים לְפִי הַשֵּׂכֶל' },
 
   // ───── מרחק ─────
   { id: 'far-he', idea: 'distance', side: 'a', he: 'רחוק מהעין, רחוק מהלב', culture: 'hebrew', src: 'פתגם עברי', year: null, motifs: ['עין', 'לב'] },
-  { id: 'far-kempis', idea: 'distance', side: 'a', he: 'מה שנעלם מהעין — נעלם מהר גם מהלב', orig: 'Cum autem sublatus fuerit ab oculis, etiam cito transit a mente', lang: 'la', culture: 'latin', src: 'תומאס א קמפיס Thomas à Kempis, חיקוי ישו 1, 23', year: 1420, approx: true, motifs: ['עין', 'לב'], at: { he: 'צווֹלֶה', en: 'Zwolle', lat: 52.52, lon: 6.09 } },
+  { id: 'far-kempis', idea: 'distance', side: 'a', he: 'מה שנעלם מהעין — נעלם מהר גם מהלב', orig: 'Cum autem sublatus fuerit ab oculis, etiam cito transit a mente', lang: 'la', culture: 'dutch', src: 'תומאס א קמפיס Thomas à Kempis, חיקוי ישו 1, 23', year: 1420, approx: true, motifs: ['עין', 'לב'] },
   { id: 'far-en', idea: 'distance', side: 'a', he: 'מחוץ לטווח הראייה — מחוץ למחשבה', orig: 'Out of sight, out of mind', lang: 'en', culture: 'english', src: 'פתגם אנגלי', year: null, motifs: ['עין'] },
   { id: 'far-fr', idea: 'distance', side: 'a', he: 'רחוק מהעיניים, רחוק מהלב', orig: 'Loin des yeux, loin du cœur', lang: 'fr', culture: 'french', src: 'פתגם צרפתי', year: null, motifs: ['עין', 'לב'] },
   { id: 'far-ar', idea: 'distance', side: 'a', he: 'הרחוק מהעין — רחוק מהלב', orig: 'البعيد عن العين بعيد عن القلب', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: ['עין', 'לב'] },
   { id: 'far-jp', idea: 'distance', side: 'a', he: 'מי שעזב — מתרחק מיום ליום', orig: '去る者は日々に疎し', lang: 'ja', culture: 'japanese', src: 'פתגם יפני, על פי שיר סיני עתיק', year: null, motifs: ['יום'] },
   { id: 'far-bayly', idea: 'distance', side: 'b', he: 'ההיעדרות מגבירה את אהבת הלב', orig: 'Absence makes the heart grow fonder', lang: 'en', culture: 'english', src: 'תומס היינס ביילי Thomas Haynes Bayly, Isle of Beauty', year: 1844, motifs: ['לב'] },
-  { id: 'far-rochefoucauld', idea: 'distance', side: 's', he: 'הריחוק מקטין תשוקות בינוניות ומגדיל גדולות, כמו שהרוח מכבה נרות ומבעירה אש', orig: 'L\'absence diminue les médiocres passions, et augmente les grandes, comme le vent éteint les bougies et allume le feu', lang: 'fr', culture: 'french', src: 'לה רושפוקו La Rochefoucauld, מכתמים 276', year: 1665, motifs: ['רוח', 'אש'] },
+  { id: 'far-rochefoucauld', idea: 'distance', side: 's', he: 'הריחוק מקטין תשוקות בינוניות ומגדיל גדולות, כמו שהרוח מכבה נרות ומבעירה אש', orig: 'L\'absence diminue les médiocres passions, et augmente les grandes, comme le vent éteint les bougies et allume le feu', lang: 'fr', culture: 'french', src: 'לה רושפוקו La Rochefoucauld, מכתמים 276', year: 1665, motifs: ['רוח', 'אש'], nikud: 'הָרִחוּק מַקְטִין תְּשׁוּקוֹת בֵּינוֹנִיּוֹת וּמַגְדִּיל גְּדוֹלוֹת, כְּמוֹ שֶׁהָרוּחַ מְכַבָּה נֵרוֹת וּמַבְעִירָה אֵשׁ' },
 
   // ───── כסף ─────
   { id: 'money-kohelet', idea: 'money', side: 'a', he: 'והכסף יענה את הכול', culture: 'bible', src: 'קהלת י, יט', year: -250, approx: true, motifs: ['כסף'] },
@@ -117,15 +118,15 @@ export const SAYINGS: Saying[] = [
   // ───── גורל ובחירה ─────
   { id: 'fate-ar', idea: 'fate', side: 'a', he: 'מה שנכתב — אין ממנו מנוס', orig: 'المكتوب ما منه مهروب', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: ['כתב'] },
   { id: 'fate-prov', idea: 'fate', side: 'a', he: 'רבות מחשבות בלב איש, ועצת ה\' היא תקום', culture: 'bible', src: 'משלי יט, כא', year: -600, approx: true, motifs: ['מחשבה', 'אל'] },
-  { id: 'fate-kempis', idea: 'fate', side: 'a', he: 'האדם מתכנן, והאל מכריע', orig: 'Homo proponit, sed Deus disponit', lang: 'la', culture: 'latin', src: 'תומאס א קמפיס Thomas à Kempis, חיקוי ישו 1, 19', year: 1420, approx: true, motifs: ['מחשבה', 'אל'], at: { he: 'צווֹלֶה', en: 'Zwolle', lat: 52.52, lon: 6.09 } },
+  { id: 'fate-kempis', idea: 'fate', side: 'a', he: 'האדם מתכנן, והאל מכריע', orig: 'Homo proponit, sed Deus disponit', lang: 'la', culture: 'dutch', src: 'תומאס א קמפיס Thomas à Kempis, חיקוי ישו 1, 19', year: 1420, approx: true, motifs: ['מחשבה', 'אל'] },
   { id: 'fate-yi', idea: 'fate', side: 'a', he: 'האדם חושב, ואלוהים צוחק', orig: 'דער מענטש טראַכט און גאָט לאַכט', lang: 'yi', culture: 'yiddish', src: 'פתגם ביידיש', year: null, motifs: ['מחשבה', 'אל'] },
   { id: 'fate-cn', idea: 'fate', side: 'a', he: 'התכנון — בידי האדם, ההצלחה — בידי השמיים', orig: '謀事在人，成事在天', lang: 'zh', culture: 'chinese', src: 'רומן שלוש הממלכות (三國演義)', year: 1380, approx: true, motifs: ['מחשבה', 'שמיים'] },
   { id: 'fate-horse', idea: 'fate', side: 'a', he: 'הזקן מן הגבול איבד סוס — מי יודע אם זה רע', orig: '塞翁失馬，焉知非福', lang: 'zh', culture: 'chinese', src: 'על פי הסיפור בהוואינאנדזי (淮南子)', year: -139, motifs: ['סוס'] },
   { id: 'fate-hillel', idea: 'fate', side: 'b', he: 'אם אין אני לי — מי לי?', culture: 'mishna', src: 'הלל, משנה אבות א, יד', year: -20, approx: true, motifs: [] },
   { id: 'fate-franklin', idea: 'fate', side: 'b', he: 'האל עוזר למי שעוזר לעצמו', orig: 'God helps them that help themselves', lang: 'en', culture: 'american', src: 'בנג\'מין פרנקלין Benjamin Franklin, אלמנך ריצ\'רד המסכן', year: 1736, motifs: ['אל', 'עזרה'] },
   { id: 'fate-terence', idea: 'fate', side: 'b', he: 'המזל עוזר לאמיצים', orig: 'Fortes fortuna adiuvat', lang: 'la', culture: 'latin', src: 'טרנטיוס Terence, פורמיו 203', year: -161, motifs: ['מזל', 'עזרה'] },
-  { id: 'fate-camel', idea: 'fate', side: 's', he: 'קשור את הגמל — ואז סמוך על האל', orig: 'اعقلها وتوكل', lang: 'ar', culture: 'islam', src: 'חדית\', באוסף א-תירמד\'י', year: 870, approx: true, motifs: ['גמל', 'אל'] },
-  { id: 'fate-akiva', idea: 'fate', side: 's', he: 'הכול צפוי, והרשות נתונה', culture: 'mishna', src: 'רבי עקיבא, משנה אבות ג, טו', year: 120, approx: true, motifs: [] },
+  { id: 'fate-camel', idea: 'fate', side: 's', he: 'קשור את הגמל — ואז סמוך על האל', orig: 'اعقلها وتوكل', lang: 'ar', culture: 'islam', src: 'חדית\', באוסף א-תירמד\'י', year: 870, approx: true, motifs: ['גמל', 'אל'], nikud: 'קְשֹׁר אֶת הַגָּמָל — וְאָז סְמֹךְ עַל הָאֵל' },
+  { id: 'fate-akiva', idea: 'fate', side: 's', he: 'הכול צפוי, והרשות נתונה', culture: 'mishna', src: 'רבי עקיבא, משנה אבות ג, טו', year: 120, approx: true, motifs: [], nikud: 'הַכֹּל צָפוּי, וְהָרְשׁוּת נְתוּנָה' },
 
   // ───── מילים ומעשים ─────
   { id: 'deed-shammai', idea: 'deeds', side: 'a', he: 'אמור מעט, ועשה הרבה', culture: 'mishna', src: 'שמאי, משנה אבות א, טו', year: -20, approx: true, motifs: ['דיבור'] },
@@ -133,7 +134,7 @@ export const SAYINGS: Saying[] = [
   { id: 'deed-en', idea: 'deeds', side: 'a', he: 'מעשים מדברים חזק יותר ממילים', orig: 'Actions speak louder than words', lang: 'en', culture: 'english', src: 'פתגם אנגלי', year: null, motifs: ['קול', 'דיבור'] },
   { id: 'deed-cn', idea: 'deeds', side: 'a', he: 'שמע את דבריו, והתבונן במעשיו', orig: '聽其言而觀其行', lang: 'zh', culture: 'chinese', src: 'קונפוציוס, השיחות (論語) 5:10', year: -500, approx: true, motifs: ['דיבור', 'מבט'] },
   { id: 'deed-ru', idea: 'deeds', side: 'a', he: 'שופטים לא לפי המילים, אלא לפי המעשים', orig: 'Не по словам судят, а по делам', lang: 'ru', culture: 'russian', src: 'פתגם רוסי', year: null, motifs: ['דיבור'] },
-  { id: 'deed-goethe', idea: 'deeds', side: 'a', he: 'בראשית היה המעשה', orig: 'Im Anfang war die Tat', lang: 'de', culture: 'german', src: 'גתה Goethe, פאוסט א', year: 1808, motifs: ['בראשית'], at: { he: 'ויימאר', en: 'Weimar', lat: 50.98, lon: 11.33 }, note: 'גתה כותב מחדש את פתיחת הבשורה על פי יוחנן.' },
+  { id: 'deed-goethe', idea: 'deeds', side: 'a', he: 'בראשית היה המעשה', orig: 'Im Anfang war die Tat', lang: 'de', culture: 'german', src: 'גתה Goethe, פאוסט א', year: 1808, motifs: ['בראשית'], note: 'גתה כותב מחדש את פתיחת הבשורה על פי יוחנן.' },
   { id: 'deed-prov', idea: 'deeds', side: 'b', he: 'מוות וחיים ביד לשון', culture: 'bible', src: 'משלי יח, כא', year: -600, approx: true, motifs: ['לשון', 'יד'] },
   { id: 'deed-pen', idea: 'deeds', side: 'b', he: 'העט חזק מן החרב', orig: 'The pen is mightier than the sword', lang: 'en', culture: 'english', src: 'אדוארד בולוור-ליטון Edward Bulwer-Lytton, רישליה', year: 1839, motifs: ['עט', 'חרב'] },
   { id: 'deed-ar', idea: 'deeds', side: 'b', he: 'לא אחת אמרה מילה לאומרהּ: עזוב אותי', orig: 'رب كلمة قالت لصاحبها دعني', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: ['דיבור'] },
@@ -147,7 +148,7 @@ export const SAYINGS: Saying[] = [
   { id: 'nb-fence', idea: 'neighbors', side: 'b', he: 'גדרות טובות עושות שכנים טובים', orig: 'Good fences make good neighbors', lang: 'en', culture: 'american', src: 'פתגם; מצוטט אצל רוברט פרוסט Robert Frost, Mending Wall', year: 1914, motifs: ['גדר', 'שכן'] },
   { id: 'nb-sight', idea: 'neighbors', side: 'b', he: 'היזק ראייה — שמיה היזק', culture: 'bavli', src: 'בבא בתרא ב ע"ב: לכן שותפים בחצר בונים כותל', year: 500, approx: true, motifs: ['גדר', 'מבט'] },
   { id: 'nb-prov2', idea: 'neighbors', side: 'b', he: 'הֹקַר רגלך מבית רעך, פן ישבעך ושנאך', culture: 'bible', src: 'משלי כה, יז', year: -600, approx: true, motifs: ['בית', 'רגל'], note: 'אותו ספר, משלי, אומר גם "טוב שכן קרוב".' },
-  { id: 'nb-herbert', idea: 'neighbors', side: 's', he: 'אהוב את שכנך, אבל אל תעקור את הגדר', orig: 'Love your neighbour, yet pull not down your hedge', lang: 'en', culture: 'english', src: 'ג\'ורג\' הרברט George Herbert, Outlandish Proverbs', year: 1640, motifs: ['גדר', 'שכן'] },
+  { id: 'nb-herbert', idea: 'neighbors', side: 's', he: 'אהוב את שכנך, אבל אל תעקור את הגדר', orig: 'Love your neighbour, yet pull not down your hedge', lang: 'en', culture: 'english', src: 'ג\'ורג\' הרברט George Herbert, Outlandish Proverbs', year: 1640, motifs: ['גדר', 'שכן'], nikud: 'אֱהֹב אֶת שְׁכֵנְךָ, אֲבָל אַל תַּעֲקֹר אֶת הַגָּדֵר' },
 
   // ───── סיכון ─────
   { id: 'risk-en', idea: 'risk', side: 'a', he: 'טובה ציפור אחת ביד משתיים בשיח', orig: 'A bird in the hand is worth two in the bush', lang: 'en', culture: 'english', src: 'פתגם אנגלי', year: null, motifs: ['ציפור', 'יד'], note: 'מחיר הוודאות: 2 ציפורים.' },
@@ -192,17 +193,17 @@ export const SAYINGS: Saying[] = [
   { id: 'chg-heraclitus', idea: 'change', side: 'b', he: 'אי אפשר להיכנס פעמיים לאותו נהר', orig: 'δὶς ἐς τὸν αὐτὸν ποταμὸν οὐκ ἂν ἐμβαίης', lang: 'grc', culture: 'greek', src: 'הרקליטוס Heraclitus, מובא אצל אפלטון, קרטילוס 402a', year: -500, approx: true, motifs: ['נהר', 'מים'], at: EPHESUS },
   { id: 'chg-confucius', idea: 'change', side: 'b', he: 'הכול חולף כמו הנהר הזה, ואינו פוסק יום ולילה', orig: '逝者如斯夫，不舍晝夜', lang: 'zh', culture: 'chinese', src: 'קונפוציוס, השיחות (論語) 9:17, על גדת הנהר', year: -500, approx: true, motifs: ['נהר', 'מים'] },
   { id: 'chg-chomei', idea: 'change', side: 'b', he: 'זרם הנהר אינו פוסק, ואין המים אותם המים', orig: 'ゆく河の流れは絶えずして、しかももとの水にあらず', lang: 'ja', culture: 'japanese', src: 'קאמו נו צ\'ומיי Kamo no Chōmei, הוֹג\'וֹקי (方丈記)', year: 1212, motifs: ['נהר', 'מים'] },
-  { id: 'chg-kohelet2', idea: 'change', side: 's', he: 'דור הולך ודור בא, והארץ לעולם עומדת', culture: 'bible', src: 'קהלת א, ד', year: -250, approx: true, motifs: ['ארץ'] },
+  { id: 'chg-kohelet2', idea: 'change', side: 's', he: 'דור הולך ודור בא, והארץ לעולם עומדת', culture: 'bible', src: 'קהלת א, ד', year: -250, approx: true, motifs: ['ארץ'], nikud: 'דּוֹר הֹלֵךְ וְדוֹר בָּא, וְהָאָרֶץ לְעוֹלָם עֹמָדֶת' },
 
   // ───── נקמה וסליחה ─────
-  { id: 'rev-hammurabi', idea: 'revenge', side: 'a', he: 'אדם שעיוור עין של בן חורין — יעוורו את עינו', culture: 'akkad', src: 'חוקי חמורבי Hammurabi, סעיף 196', year: -1754, motifs: ['עין'] },
+  { id: 'rev-hammurabi', idea: 'revenge', side: 'a', he: 'אדם שעיוור עין של בן חורין — יעוורו את עינו', culture: 'akkad', lang: 'akk', src: 'חוקי חמורבי Hammurabi, סעיף 196', year: -1754, motifs: ['עין'] },
   { id: 'rev-exodus', idea: 'revenge', side: 'a', he: 'עין תחת עין, שן תחת שן', culture: 'bible', src: 'שמות כא, כד', year: -600, approx: true, motifs: ['עין', 'שן'] },
   { id: 'rev-matthew', idea: 'revenge', side: 'b', he: 'מי שמכה אותך על הלחי הימנית — הטה לו גם את האחרת', culture: 'nt', src: 'הבשורה על פי מתי ה, לט', year: 80, approx: true, motifs: ['לחי'] },
   { id: 'rev-laozi', idea: 'revenge', side: 'b', he: 'השב על עלבון בטוב', orig: '報怨以德', lang: 'zh', culture: 'chinese', src: 'לאו-דזה, דאו דה ג\'ינג 63', year: -400, approx: true, motifs: [], at: LUOYANG },
   { id: 'rev-prov', idea: 'revenge', side: 'b', he: 'אם רעב שונאך — האכילהו לחם', culture: 'bible', src: 'משלי כה, כא', year: -600, approx: true, motifs: ['לחם'] },
   { id: 'rev-lev', idea: 'revenge', side: 'b', he: 'לא תיקום ולא תיטור', culture: 'bible', src: 'ויקרא יט, יח', year: -600, approx: true, motifs: [] },
-  { id: 'rev-confucius', idea: 'revenge', side: 's', he: 'על עלבון — השב ביושר; על טובה — השב בטובה', orig: '以直報怨，以德報德', lang: 'zh', culture: 'chinese', src: 'קונפוציוס, השיחות (論語) 14:34', year: -500, approx: true, motifs: [], note: 'תשובה ישירה לשאלה: "ומה דעתך על השבת עלבון בטוב?"' },
-  { id: 'rev-quran', idea: 'revenge', side: 's', he: 'נפש בנפש ועין בעין… ומי שמוחל — כפרה היא לו', orig: 'النفس بالنفس والعين بالعين … فمن تصدق به فهو كفارة له', lang: 'ar', culture: 'islam', src: 'הקוראן, סורה 5, 45', year: 632, approx: true, motifs: ['עין'] },
+  { id: 'rev-confucius', idea: 'revenge', side: 's', he: 'על עלבון — השב ביושר; על טובה — השב בטובה', orig: '以直報怨，以德報德', lang: 'zh', culture: 'chinese', src: 'קונפוציוס, השיחות (論語) 14:34', year: -500, approx: true, motifs: [], note: 'תשובה ישירה לשאלה: "ומה דעתך על השבת עלבון בטוב?"', nikud: 'עַל עֶלְבּוֹן — הָשֵׁב בְּיֹשֶׁר; עַל טוֹבָה — הָשֵׁב בְּטוֹבָה' },
+  { id: 'rev-quran', idea: 'revenge', side: 's', he: 'נפש בנפש ועין בעין… ומי שמוחל — כפרה היא לו', orig: 'النفس بالنفس والعين بالعين … فمن تصدق به فهو كفارة له', lang: 'ar', culture: 'islam', src: 'הקוראן, סורה 5, 45', year: 632, approx: true, motifs: ['עין'], nikud: 'נֶפֶשׁ בְּנֶפֶשׁ וְעַיִן בְּעַיִן… וּמִי שֶׁמּוֹחֵל — כַּפָּרָה הִיא לוֹ' },
 
   // ───── כלל הזהב ─────
   { id: 'gold-hillel', idea: 'golden', side: 'a', he: 'מה ששנוא עליך — אל תעשה לחברך', orig: 'דעלך סני לחברך לא תעביד', lang: 'arc', culture: 'bavli', src: 'הלל, שבת לא ע"א', year: -20, approx: true, motifs: ['אל תעשה'] },
@@ -226,6 +227,80 @@ export const SAYINGS: Saying[] = [
   { id: 'home-mazal', idea: 'home', side: 'b', he: 'משנה מקום — משנה מזל', culture: 'bavli', src: 'על פי ראש השנה טז ע"ב: "שינוי מקום" קורע גזר דין', year: 500, approx: true, motifs: ['מקום', 'מזל'] },
   { id: 'home-tree', idea: 'home', side: 'b', he: 'עץ שמזיזים — מת; אדם שזז — חי', orig: '樹挪死，人挪活', lang: 'zh', culture: 'chinese', src: 'פתגם סיני', year: null, motifs: ['עץ'] },
   { id: 'home-prophet', idea: 'home', side: 'b', he: 'אין נביא בעירו', orig: 'οὐδεὶς προφήτης δεκτός ἐστιν ἐν τῇ πατρίδι αὐτοῦ', lang: 'grc', culture: 'nt', src: 'הבשורה על פי לוקס ד, כד', year: 85, approx: true, motifs: ['עיר'] },
+
+  { id: 'rev-bk', idea: 'revenge', side: 's', he: '"עין תחת עין" — ממון', culture: 'bavli', src: 'בבא קמא פג ע"ב–פד ע"א: חז"ל קוראים את הפסוק כפיצוי כספי', year: 500, approx: true, motifs: ['עין', 'כסף'], note: 'אותו פסוק, באותה שפה, אלף שנה אחר כך: מנקמה לפיצוי.', nikud: '"עַיִן תַּחַת עַיִן" — מָמוֹן' },
+
+  // ───── גיל וחוכמה ─────
+  { id: 'age-job', idea: 'age', side: 'a', he: 'בישישים חוכמה, ואורך ימים תבונה', culture: 'bible', src: 'איוב יב, יב', year: -500, approx: true, motifs: ['זקנה'] },
+  { id: 'age-ar', idea: 'age', side: 'a', he: 'מי שגדול ממך ביום — יודע ממך בשנה', orig: 'أكبر منك بيوم أعلم منك بسنة', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: ['זקנה', 'יום'] },
+  { id: 'age-cn', idea: 'age', side: 'a', he: 'מי שלא שומע לזקנים — נפגע מיד', orig: '不聽老人言，吃虧在眼前', lang: 'zh', culture: 'chinese', src: 'פתגם סיני', year: null, motifs: ['זקנה'] },
+  { id: 'age-jp', idea: 'age', side: 'a', he: 'ניסיון השנים שווה יותר משריון הצב', orig: '亀の甲より年の功', lang: 'ja', culture: 'japanese', src: 'פתגם יפני', year: null, motifs: ['זקנה', 'חיה'] },
+  { id: 'age-mali', idea: 'age', side: 'a', he: 'באפריקה, כשזקן מת — ספרייה נשרפת', orig: 'En Afrique, quand un vieillard meurt, c\'est une bibliothèque qui brûle', lang: 'fr', culture: 'mali', src: 'אמדו המפטה בא Amadou Hampâté Bâ, נאום באונסק"ו', year: 1960, motifs: ['זקנה', 'ספר', 'אש'] },
+  { id: 'age-job2', idea: 'age', side: 'b', he: 'לא רבים יחכמו, וזקנים יבינו משפט', culture: 'bible', src: 'איוב לב, ט: אליהוא הצעיר עונה לזקנים', year: -500, approx: true, motifs: ['זקנה'], note: 'אותו ספר, איוב, אומר גם "בישישים חוכמה".' },
+  { id: 'age-kohelet', idea: 'age', side: 'b', he: 'טוב ילד מסכן וחכם, ממלך זקן וכסיל', culture: 'bible', src: 'קהלת ד, יג', year: -250, approx: true, motifs: ['זקנה', 'ילד'] },
+  { id: 'age-confucius', idea: 'age', side: 'b', he: 'את הצעירים יש לכבד', orig: '後生可畏', lang: 'zh', culture: 'chinese', src: 'קונפוציוס, השיחות (論語) 9:23', year: -500, approx: true, motifs: ['ילד'] },
+  { id: 'age-fool', idea: 'age', side: 'b', he: 'אין טיפש כמו טיפש זקן', orig: 'There\'s no fool like an old fool', lang: 'en', culture: 'english', src: 'פתגם אנגלי, באוסף של ג\'ון הייווד John Heywood', year: 1546, motifs: ['זקנה'] },
+  { id: 'age-kid', idea: 'age', side: 's', he: 'אין זקן אלא מי שקנה חוכמה', culture: 'bavli', src: 'קידושין לב ע"ב', year: 500, approx: true, motifs: ['זקנה'], note: 'הגדרה מחדש: "זקן" הוא תואר של חוכמה, לא של שנים.', nikud: 'אֵין זָקֵן אֶלָּא מִי שֶׁקָּנָה חָכְמָה' },
+
+  // ───── אמת ─────
+  { id: 'tru-exodus', idea: 'truth', side: 'a', he: 'מדבר שקר תרחק', culture: 'bible', src: 'שמות כג, ז', year: -600, approx: true, motifs: ['דיבור'] },
+  { id: 'tru-seal', idea: 'truth', side: 'a', he: 'חותמו של הקדוש ברוך הוא — אמת', culture: 'bavli', src: 'שבת נה ע"א', year: 500, approx: true, motifs: ['חותם', 'אל'] },
+  { id: 'tru-cn', idea: 'truth', side: 'a', he: 'דבריו נאמנים, ומעשיו נחושים', orig: '言必信，行必果', lang: 'zh', culture: 'chinese', src: 'קונפוציוס, השיחות (論語) 13:20', year: -500, approx: true, motifs: ['דיבור'] },
+  { id: 'tru-en', idea: 'truth', side: 'a', he: 'יושר הוא המדיניות הטובה ביותר', orig: 'Honesty is the best policy', lang: 'en', culture: 'english', src: 'פתגם אנגלי', year: null, motifs: [] },
+  { id: 'tru-ar', idea: 'truth', side: 'a', he: 'האמת — מצילה', orig: 'الصدق منجاة', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: [] },
+  { id: 'tru-yi', idea: 'truth', side: 'a', he: 'עם שקר אפשר לעבור את העולם, אבל לא לחזור', orig: 'מיט אַ ליגן קען מען די וועלט דורכגיין, אָבער ניט צוריקקומען', lang: 'yi', culture: 'yiddish', src: 'פתגם ביידיש', year: null, motifs: ['דרך'] },
+  { id: 'tru-kant', idea: 'truth', side: 'a', he: 'אסור לשקר — גם לרוצח ששואל איפה חברך', lang: 'de', culture: 'german', src: 'עמנואל קאנט Immanuel Kant, על זכות מדומה לשקר מאהבת האדם', year: 1797, motifs: [] },
+  { id: 'tru-peace', idea: 'truth', side: 'b', he: 'מותר לשנות מפני השלום', culture: 'bavli', src: 'יבמות סה ע"ב', year: 500, approx: true, motifs: ['שלום'] },
+  { id: 'tru-kallah', idea: 'truth', side: 'b', he: 'כיצד מרקדין לפני הכלה? כלה נאה וחסודה', culture: 'bavli', src: 'כתובות טז ע"ב–יז ע"א, בית הלל', year: 500, approx: true, motifs: [] },
+  { id: 'tru-jp', idea: 'truth', side: 'b', he: 'גם שקר הוא אמצעי', orig: '嘘も方便', lang: 'ja', culture: 'japanese', src: 'פתגם יפני, ממושג "האמצעי המיומן" בבודהיזם', year: null, motifs: [] },
+  { id: 'tru-saadi', idea: 'truth', side: 'b', he: 'שקר שמביא שלום — טוב מאמת שמבעירה ריב', orig: 'دروغی مصلحت‌آمیز به که راستی فتنه‌انگیز', lang: 'fa', culture: 'persian', src: 'סעדי Saadi, הגולסתאן, הסיפור הראשון', year: 1258, motifs: ['שלום'] },
+  { id: 'tru-ps', idea: 'truth', side: 's', he: 'חסד ואמת נפגשו, צדק ושלום נשקו', culture: 'bible', src: 'תהלים פה, יא', year: -500, approx: true, motifs: ['שלום'], nikud: 'חֶסֶד וֶאֱמֶת נִפְגָּשׁוּ, צֶדֶק וְשָׁלוֹם נָשָׁקוּ' },
+
+  // ───── נדיבות וחיסכון ─────
+  { id: 'gen-bread', idea: 'generosity', side: 'a', he: 'שלח לחמך על פני המים, כי ברוב הימים תמצאנו', culture: 'bible', src: 'קהלת יא, א', year: -250, approx: true, motifs: ['לחם', 'מים'] },
+  { id: 'gen-prov', idea: 'generosity', side: 'a', he: 'צדקה תציל ממוות', culture: 'bible', src: 'משלי י, ב', year: -600, approx: true, motifs: [] },
+  { id: 'gen-acts', idea: 'generosity', side: 'a', he: 'ברוך הנותן יותר מן המקבל', orig: 'μακάριόν ἐστιν μᾶλλον διδόναι ἢ λαμβάνειν', lang: 'grc', culture: 'nt', src: 'מעשי השליחים כ, לה', year: 85, approx: true, motifs: ['יד'] },
+  { id: 'gen-hadith', idea: 'generosity', side: 'a', he: 'היד העליונה טובה מן היד התחתונה', orig: 'اليد العليا خير من اليد السفلى', lang: 'ar', culture: 'islam', src: 'חדית\', צחיח אל-בוח\'ארי 1429', year: 846, approx: true, motifs: ['יד'] },
+  { id: 'gen-cn', idea: 'generosity', side: 'a', he: 'הנותן ורד — הריח נשאר על ידו', orig: '贈人玫瑰，手有餘香', lang: 'zh', culture: 'chinese', src: 'פתגם סיני', year: null, motifs: ['פרח', 'יד'] },
+  { id: 'gen-penny', idea: 'generosity', side: 'b', he: 'פרוטה שנחסכה — פרוטה שהורווחה', orig: 'A penny saved is a penny earned', lang: 'en', culture: 'english', src: 'פתגם אנגלי', year: null, motifs: ['כסף'] },
+  { id: 'gen-cn2', idea: 'generosity', side: 'b', he: 'אגור תבואה מפני הרעב', orig: '積穀防飢', lang: 'zh', culture: 'chinese', src: 'פתגם סיני', year: null, motifs: ['לחם'] },
+  { id: 'gen-de', idea: 'generosity', side: 'b', he: 'חסוך בעיתו, ויהיה לך בעת צרה', orig: 'Spare in der Zeit, so hast du in der Not', lang: 'de', culture: 'german', src: 'פתגם גרמני', year: null, motifs: ['זמן'] },
+  { id: 'gen-ar', idea: 'generosity', side: 'b', he: 'הגרוש הלבן מועיל ביום השחור', orig: 'القرش الأبيض ينفع في اليوم الأسود', lang: 'ar', culture: 'arabic', src: 'פתגם ערבי', year: null, motifs: ['כסף', 'יום'] },
+  { id: 'gen-chomesh', idea: 'generosity', side: 's', he: 'המבזבז — אל יבזבז יותר מחומש', culture: 'bavli', src: 'כתובות נ ע"א: תקנת אושא', year: 500, approx: true, motifs: ['כסף'], note: 'הנדיבות מקבלת תקרה: עשרים אחוז.', nikud: 'הַמְבַזְבֵּז — אַל יְבַזְבֵּז יוֹתֵר מֵחֹמֶשׁ' },
+  { id: 'gen-aristotle', idea: 'generosity', side: 's', he: 'הנדיבות היא האמצע בין בזבזנות לקמצנות', lang: 'grc', culture: 'greek', src: 'אריסטו Aristotle, האתיקה הניקומכית, ספר ד', year: -340, approx: true, motifs: [], nikud: 'הַנְּדִיבוּת הִיא הָאֶמְצַע בֵּין בַּזְבְּזָנוּת לְקַמְצָנוּת' },
+
+  // ───── לב ושכל ─────
+  { id: 'hrt-prov', idea: 'heart', side: 'a', he: 'בוטח בליבו — הוא כסיל', culture: 'bible', src: 'משלי כח, כו', year: -600, approx: true, motifs: ['לב'] },
+  { id: 'hrt-jer', idea: 'heart', side: 'a', he: 'עקוב הלב מכול, ואנוש הוא', culture: 'bible', src: 'ירמיהו יז, ט', year: -590, approx: true, motifs: ['לב'] },
+  { id: 'hrt-horace', idea: 'heart', side: 'a', he: 'הכעס הוא טירוף קצר', orig: 'Ira furor brevis est', lang: 'la', culture: 'latin', src: 'הורטיוס Horace, איגרות 1, 2', year: -20, approx: true, motifs: [] },
+  { id: 'hrt-pascal', idea: 'heart', side: 'b', he: 'ללב יש נימוקים שהשכל אינו מכיר', orig: 'Le cœur a ses raisons que la raison ne connaît point', lang: 'fr', culture: 'french', src: 'בלז פסקל Blaise Pascal, הגיגים', year: 1670, motifs: ['לב'] },
+  { id: 'hrt-exupery', idea: 'heart', side: 'b', he: 'רק בלב רואים היטב; העיקר סמוי מן העין', orig: 'On ne voit bien qu\'avec le cœur. L\'essentiel est invisible pour les yeux.', lang: 'fr', culture: 'french', src: 'אנטואן דה סנט-אכזופרי Antoine de Saint-Exupéry, הנסיך הקטן', year: 1943, motifs: ['לב', 'עין'] },
+  { id: 'hrt-libba', idea: 'heart', side: 'b', he: 'רחמנא ליבא בעי', culture: 'bavli', src: 'סנהדרין קו ע"ב', year: 500, approx: true, motifs: ['לב', 'אל'] },
+  { id: 'hrt-solomon', idea: 'heart', side: 's', he: 'ונתת לעבדך לב שומע', culture: 'bible', src: 'מלכים א ג, ט: שלמה מבקש חוכמה', year: -600, approx: true, motifs: ['לב'], note: 'במקרא הלב הוא מקום המחשבה: אין שם בכלל ויכוח בין לב לשכל.', nikud: 'וְנָתַתָּ לְעַבְדְּךָ לֵב שֹׁמֵעַ' },
+
+  // ───── עבודה ומנוחה ─────
+  { id: 'wrk-ps', idea: 'work', side: 'a', he: 'יגיע כפיך כי תאכל — אשריך וטוב לך', culture: 'bible', src: 'תהלים קכח, ב', year: -500, approx: true, motifs: ['יד'] },
+  { id: 'wrk-cn', idea: 'work', side: 'a', he: 'כמה שחורשים — כך קוצרים', orig: '一分耕耘，一分收穫', lang: 'zh', culture: 'chinese', src: 'פתגם סיני', year: null, motifs: ['קציר'] },
+  { id: 'wrk-ru', idea: 'work', side: 'a', he: 'בלי עמל לא תוציא אפילו דג מהבריכה', orig: 'Без труда не вытащишь и рыбку из пруда', lang: 'ru', culture: 'russian', src: 'פתגם רוסי', year: null, motifs: ['חיה', 'מים'] },
+  { id: 'wrk-jp', idea: 'work', side: 'a', he: 'גם על אבן — שלוש שנים', orig: '石の上にも三年', lang: 'ja', culture: 'japanese', src: 'פתגם יפני: גם אבן קרה מתחממת למי שיושב עליה', year: null, motifs: ['אבן', 'מספר'] },
+  { id: 'wrk-pain', idea: 'work', side: 'a', he: 'בלי כאב — אין רווח', orig: 'No pain, no gain', lang: 'en', culture: 'american', src: 'ביטוי אמריקני', year: null, motifs: ['כאב'] },
+  { id: 'wrk-shabbat', idea: 'work', side: 'b', he: 'וביום השביעי שבת וינפש', culture: 'bible', src: 'שמות לא, יז', year: -600, approx: true, motifs: ['יום', 'מספר'] },
+  { id: 'wrk-kohelet', idea: 'work', side: 'b', he: 'טוב מלוא כף נחת, ממלוא חופניים עמל ורעות רוח', culture: 'bible', src: 'קהלת ד, ו', year: -250, approx: true, motifs: ['יד'] },
+  { id: 'wrk-it', idea: 'work', side: 'b', he: 'המתיקות שבלעשות כלום', orig: 'Dolce far niente', lang: 'it', culture: 'italian', src: 'ביטוי איטלקי', year: null, motifs: [] },
+  { id: 'wrk-jack', idea: 'work', side: 'b', he: 'רק עבודה ובלי משחק — עושים את ג\'ק לנער משעמם', orig: 'All work and no play makes Jack a dull boy', lang: 'en', culture: 'english', src: 'ג\'יימס האוול James Howell, אוסף פתגמים', year: 1659, motifs: [] },
+  { id: 'wrk-laozi', idea: 'work', side: 'b', he: 'עשה בלי לעשות', orig: '為無為', lang: 'zh', culture: 'chinese', src: 'לאו-דזה, דאו דה ג\'ינג 63', year: -400, approx: true, motifs: [], at: LUOYANG },
+  { id: 'wrk-ora', idea: 'work', side: 's', he: 'התפלל ועבוד', orig: 'Ora et labora', lang: 'la', culture: 'church', src: 'מוטו המסורת הבנדיקטינית', year: null, motifs: [], nikud: 'הִתְפַּלֵּל וַעֲבֹד' },
+
+  // ───── ענווה וערך עצמי ─────
+  { id: 'prd-prov', idea: 'pride', side: 'a', he: 'לפני שבר — גאון', culture: 'bible', src: 'משלי טז, יח', year: -600, approx: true, motifs: [] },
+  { id: 'prd-avot', idea: 'pride', side: 'a', he: 'מאוד מאוד הוי שפל רוח', culture: 'mishna', src: 'רבי לויטס איש יבנה, משנה אבות ד, ד', year: 120, approx: true, motifs: [] },
+  { id: 'prd-jp', idea: 'pride', side: 'a', he: 'ככל ששיבולת האורז מבשילה — היא מרכינה ראש', orig: '実るほど頭を垂れる稲穂かな', lang: 'ja', culture: 'japanese', src: 'פתגם יפני', year: null, motifs: ['צמח'] },
+  { id: 'prd-cn', idea: 'pride', side: 'a', he: 'שחצנות מביאה הפסד, ענווה מקבלת תועלת', orig: '滿招損，謙受益', lang: 'zh', culture: 'chinese', src: 'ספר המסמכים (尚書)', year: -400, approx: true, motifs: [] },
+  { id: 'prd-en', idea: 'pride', side: 'a', he: 'הגאווה באה לפני הנפילה', orig: 'Pride goes before a fall', lang: 'en', culture: 'english', src: 'פתגם אנגלי, מתרגום משלי טז, יח', year: null, motifs: [] },
+  { id: 'prd-sanh', idea: 'pride', side: 'b', he: 'כל אחד ואחד חייב לומר: בשבילי נברא העולם', culture: 'mishna', src: 'משנה סנהדרין ד, ה', year: 200, approx: true, motifs: ['עולם'] },
+  { id: 'prd-horn', idea: 'pride', side: 'b', he: 'אם לא תתקע בחצוצרה שלך — אף אחד לא יתקע', orig: 'If you don\'t blow your own horn, no one else will', lang: 'en', culture: 'american', src: 'פתגם אמריקני', year: null, motifs: ['קול'] },
+  { id: 'prd-hillel', idea: 'pride', side: 'b', he: 'במקום שאין אנשים — השתדל להיות איש', culture: 'mishna', src: 'הלל, משנה אבות ב, ה', year: -20, approx: true, motifs: [] },
+  { id: 'prd-bunim', idea: 'pride', side: 's', he: 'בכיס אחד: "בשבילי נברא העולם"; בכיס השני: "ואנוכי עפר ואפר"', culture: 'hasidic', src: 'רבי שמחה בונים מפשיסחה, מסורת חסידית', year: 1820, approx: true, motifs: ['כיס', 'עולם'], nikud: 'בְּכִיס אֶחָד: "בִּשְׁבִילִי נִבְרָא הָעוֹלָם"; בַּכִּיס הַשֵּׁנִי: "וְאָנֹכִי עָפָר וָאֵפֶר"' },
 ];
 
 // זוגות מתחזים בין רעיונות: אותן מילים או אותו דימוי, משמעות אחרת. meaning בין -1 (הפוך) ל-1 (זהה).
@@ -236,5 +311,8 @@ export const CROSS_PAIRS: { a: string; b: string; meaning: number; note: string 
   { a: 'risk-en', b: 'like-feather', meaning: 0, note: 'ציפורים בשני הפתגמים: באחד הן מחיר הוודאות, ובשני הן חברה.' },
   { a: 'risk-virgil', b: 'fate-terence', meaning: 0.9, note: 'כמעט אותן מילים, בהפרש של 140 שנה: המזל עוזר לאמיצים ולנועזים.' },
   { a: 'deed-john', b: 'deed-goethe', meaning: -0.9, note: 'גתה מעתיק את המבנה של יוחנן ומחליף מילה אחת, וכך הופך את המשמעות.' },
+  { a: 'prd-bunim', b: 'money-yi', meaning: 0.1, note: 'כיס בשני המקרים: אצל ר\' בונים הוא מחזיק שתי אמיתות, וביידיש הוא חסר בתכריכים.' },
+  { a: 'rev-exodus', b: 'rev-bk', meaning: 0.2, note: 'אותן ארבע מילים: בשמות הן נקמה, ובתלמוד הן פיצוי כספי.' },
+  { a: 'hrt-exupery', b: 'look-samuel', meaning: 0.9, note: 'סנט-אכזופרי ושמואל: העין רואה את החיצון, והלב את העיקר.' },
   { a: 'drop-akiva', b: 'drop-ovid', meaning: 0.95, note: 'רבי עקיבא ואובידיוס, באותה מאה: מים רכים חוצבים אבן קשה.' },
 ];
