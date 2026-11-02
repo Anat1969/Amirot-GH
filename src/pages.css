@@ -440,7 +440,7 @@
 .synth { padding: 10px 12px; border: 1px solid var(--side-s); background: var(--side-s-wash); }
 .synth figure { margin: 6px 0 0; }
 .synth blockquote { margin: 0; font-size: clamp(20px, 1.6vw, 26px); line-height: 1.45; color: var(--side-s); font-weight: 500; }
-.diptych { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.diptych { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
 .dp { margin: 0; position: relative; background: #f6f5f2; aspect-ratio: 1 / 1; overflow: hidden; display: grid; }
 .dp img { width: 100%; height: 100%; object-fit: contain; display: block; background: #f6f5f2; }
 .dp-side { position: absolute; top: 6px; inset-inline-start: 6px; font-size: 11.5px; font-weight: 700; color: #fff; padding: 1px 7px; }
@@ -583,3 +583,76 @@
 .dp-link { display: block; width: 100%; height: 100%; }
 .dp-link img { transition: transform .4s ease; }
 .dp-link:hover img { transform: scale(1.04); }
+
+/* אטלס, סבב 3: עומק, דיוקן תרבות בתוך הרשימה */
+.sphere { stroke: #d5dbe2; stroke-width: 1; }
+.grat { fill: none; stroke: #ffffff; opacity: .8; }
+.land { stroke: #fff; }
+.cpt .halo { filter: none; }
+.cult-item.on { box-shadow: inset 3px 0 0 var(--ink); background: #fbfbf9; margin: 4px 0; }
+.cult-item.on .cult-row { background: var(--ink); color: #fff; }
+.cult-item.on .cult-row .en { color: #ccc; }
+.cprof { padding: 8px 10px 12px; display: grid; gap: 8px; }
+.cprof .insight-line { font-size: 14px; }
+.cp-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cp-facts li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; font-size: 13px; line-height: 1.55; align-items: baseline; }
+.cp-sort { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--rule-soft); padding-top: 8px; }
+.cp-h { font-size: 12px; font-weight: 700; color: var(--ink-soft); margin: 8px 0 2px; border-bottom: 1px solid var(--rule-soft); }
+.cc-row.focus { box-shadow: inset 0 0 0 2px var(--marker); }
+
+/* כתבות, סבב 3: תמונה וטקסט באותו רוחב, ובחירת כתבה בתוך הדף */
+.feature { max-width: 880px; }
+.ft-head, .ft-body { max-width: none; }
+.ft-head { text-align: start; }
+.ft-body { font-size: 18px; }
+.pull { margin: 32px 0; }
+.art-pick { max-width: 880px; margin: 0 auto 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.art-card { display: grid; grid-template-rows: 110px auto auto; gap: 4px; text-align: start; padding: 0 0 10px; border: 1px solid var(--rule); background: #fff; cursor: pointer; font: inherit; color: var(--ink); box-shadow: var(--shadow-1); transition: transform .15s, box-shadow .15s; overflow: hidden; }
+.art-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.art-card img { width: 100%; height: 110px; object-fit: cover; }
+.art-card .ac-k, .art-card b { padding: 0 10px; }
+.art-card .ac-k { font-size: 11px; color: var(--ink-mute); }
+.art-card b { font-size: 14.5px; line-height: 1.3; }
+.art-card.on { box-shadow: inset 0 -4px 0 var(--ink), var(--shadow-2); }
+.ft-dip { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.ft-dip > div { display: grid; gap: 4px; }
+.ft-dip img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; box-shadow: var(--shadow-2); }
+.ft-dip figcaption { grid-column: 1 / -1; }
+.ft-dip .fd-a img { border-top: 4px solid var(--side-a); } .ft-dip .fd-b img { border-top: 4px solid var(--side-b); }
+/* תמונות גדולות: הדיפטיכון בדף ממלא את רוחב העמודה, אחת מעל השנייה, באותו גודל. לחיצה מגדילה בתוך הדף */
+@media (min-width: 1181px) { .zones { grid-template-columns: minmax(250px, 24%) minmax(0, 1fr) minmax(250px, 22%); } }
+.zone .diptych { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.zone .dp { aspect-ratio: 16 / 10; }
+.dp-link { border: 0; padding: 0; background: none; cursor: zoom-in; width: 100%; height: 100%; display: block; }
+.dp.big { aspect-ratio: auto; }
+.dp.big .dp-link { cursor: zoom-out; }
+.dp.big img { object-fit: contain; height: auto; max-height: 72vh; }
+.dp.big figcaption { position: static; }
+.dp figcaption a { color: var(--side-a); }
+.dp { box-shadow: var(--shadow-2); }
+/* בית מתחלף: תמונות המחלוקת בגדול, מעל הדף החי */
+.home-feature { margin: 0; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; height: 36%; min-height: 160px; cursor: pointer; flex: 0 0 auto; }
+.home-feature img { width: 100%; height: 100%; object-fit: cover; display: block; box-shadow: var(--shadow-2); }
+.home-feature .hf-a { border-top: 4px solid var(--side-a); } .home-feature .hf-b { border-top: 4px solid var(--side-b); }
+.home-feature figcaption { position: absolute; inset-inline: 0; bottom: 0; padding: 8px 12px; background: linear-gradient(transparent, rgba(255,255,255,.95) 40%); display: grid; gap: 2px; font-size: 13.5px; }
+.home-feature figcaption b { font-size: 18px; }
+.mini-daf { max-height: calc(64% - 70px); }
+.mc-img { width: 84px; height: 84px; }
+.map-card.has-img { grid-template-columns: 84px minmax(0, 1fr); }
+.home-daf { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(0, 1.25fr) auto; gap: 8px; }
+.home-feature { height: auto; min-height: 0; }
+.mini-daf { max-height: none; height: 100%; }
+.ft-dip img { aspect-ratio: 1 / 1; }
+@media (max-width: 860px) {
+  .home-daf { grid-template-rows: auto 220px auto auto; }
+  .mini-daf { height: auto; }
+}
+.home-feature { grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+.home-feature img { min-height: 0; height: 100%; }
+@media (max-width: 1500px) { .mc-img { width: 60px; height: 60px; } .map-card.has-img { grid-template-columns: 60px minmax(0, 1fr); } .mc-hd { flex-wrap: wrap; } }
+.home-daf { min-width: 0; }
+.hd-steps { flex-wrap: wrap; min-width: 0; }
+@media (max-width: 860px) {
+  .home-daf { grid-template-rows: auto 170px auto; }
+  .home-daf .mini-daf, .home-daf .hd-steps { display: none; }
+}

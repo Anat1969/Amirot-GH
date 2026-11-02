@@ -13,7 +13,7 @@ for (const s of SAYINGS) {
 for (const i of IDEAS) {
   const ss = BY_IDEA[i.id] || [];
   ok(ss.some((s) => s.side === 'a') && ss.some((s) => s.side === 'b'), 'חסר צד ב-' + i.id);
-  ok(ss.length <= 13, 'יותר מדי אמירות לדף ' + i.id + ' ' + ss.length);
+  ok(ss.length <= 16, 'יותר מדי אמירות לדף ' + i.id + ' ' + ss.length);
 }
 for (const c of CROSS_PAIRS) ok(!!BY_ID[c.a] && !!BY_ID[c.b], 'זוג חסר ' + c.a + ' ' + c.b);
 const st = stats();

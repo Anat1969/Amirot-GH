@@ -1,6 +1,8 @@
 // דף הבית: דף גמרא חי שמתחלף בין הרעיונות, ומפת התוכן.
 import { useEffect, useMemo, useState } from 'react';
-import { IDEAS, BY_IDEA, CULTURE, SAYINGS, PAIRS, stats, fmt } from '../engine';
+import { IDEAS, BY_IDEA, CULTURE, SAYINGS, PAIRS, WORLDS, WORLD_ORDER, worldStats, stats, fmt } from '../engine';
+import { ARTICLES } from '../data/articles';
+import { ART } from '../data/art';
 import { go, href } from '../route';
 import Rich from '../Rich';
 import { Icon } from '../icons';
@@ -8,21 +10,33 @@ import { artThumb } from '../components/Art';
 
 export default function Home() {
   const st = useMemo(stats, []);
-  const [ix, setIx] = useState(0);
+  // דף הבית מתחלף: מתחיל ממקום אקראי בכל כניסה, ומתחלף במהלך הצפייה
+  const [ix, setIx] = useState(() => Math.floor(Math.random() * IDEAS.length));
   const [pause, setPause] = useState(false);
   useEffect(() => {
     if (pause || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = setInterval(() => setIx((i) => (i + 1) % IDEAS.length), 5200);
+    const t = setInterval(() => setIx((i) => (i + 1) % IDEAS.length), 7000);
     return () => clearInterval(t);
   }, [pause]);
   const idea = IDEAS[ix];
   const far = st.farCousin;
+  const ws = useMemo(() => WORLD_ORDER.map(worldStats).filter((x) => x.ss.length >= 10), []);
+  const most = ws.slice().sort((a, b) => b.both.length / Object.keys(b.ideas).length - a.both.length / Object.keys(a.ideas).length)[0];
+  const calm = ws.filter((x) => x.both.length === 0).map((x) => WORLDS[x.w].he);
+  const POOL = [
+    far ? `אותה מחשבה ב**${CULTURE[far.p.a.culture].he}** וב**${CULTURE[far.p.b.culture].he}**, במרחק **${fmt(far.d)}** ק"מ.` : '',
+    `**${WORLDS[most.w].he}** אומרת גם וגם ב-**${most.both.length}** מתוך **${Object.keys(most.ideas).length}** מחלוקות. ==סתירה היא שיטה==.`,
+    calm.length ? `**${calm.join('**, **')}**: ==אף סתירה פנימית אחת==. תרבויות של דרך אחת.` : '',
+    `**${Math.round((st.kinds.impostor / PAIRS.length) * 100)}%** מהזוגות מתחזים: ==אותן מילים, משמעות אחרת==.`,
+    '"עין תחת עין" הפך ל**ממון** אלף שנה אחר כך. ==שפה אינה תרבות, גם בזמן==.',
+    'מחיר הוודאות: **2** ציפורים באנגלית, **10** בערבית, **100** בספרדית, ו**עגור** ברוסית.',
+  ].filter(Boolean);
   const MAP = [
-    { id: 'daf', art: 'haste', he: 'הדף', n: IDEAS.length, unit: 'מחלוקות', line: 'רעיון אחד בצורת דף: צד א, צד ב, והכרעה.', cols: '1 היכרות · 2 הבנה · 3 יישום' },
-    { id: 'mirror', art: 'drop', he: 'מראה', n: PAIRS.length, unit: 'זוגות', line: 'ארבעה סוגי קשר: תאומים, בני דודים, מתחזים ויריבים.', cols: 'סוג קשר · זוגות · פרשנות' },
-    { id: 'atlas', art: 'home', he: 'אטלס', n: st.cultures.length, unit: 'תרבויות', line: 'איפה ומתי נאמר כל רעיון, על מפה וציר זמן.', cols: 'רעיון וזמן · מפה וזום · תרבות' },
-    { id: 'trends', art: 'fate', he: 'תובנות', n: 9, unit: 'עולמות ערכים', line: 'מה כל עולם בוחר, ודרך איזו עדשה הוא מסביר.', cols: 'עולם · דיוקן · עדויות' },
-    { id: 'article', art: 'change', he: 'כתבה', n: 3, unit: 'נהרות', line: 'שני חכמים ליד נהר, באותה מאה, במרחק 7,600 ק"מ.', cols: 'מגזין · ציטוט · הייקו' },
+    { id: 'daf', art: 'haste', he: 'הדף', n: IDEAS.length, unit: 'מחלוקות', line: 'צד א, צד ב והכרעה.', cols: '1 היכרות · 2 הבנה · 3 יישום' },
+    { id: 'mirror', art: 'drop', he: 'מראה', n: PAIRS.length, unit: 'זוגות', line: 'ארבעה סוגי קשר בין זוגות.', cols: 'סוג קשר · זוגות · פרשנות' },
+    { id: 'atlas', art: 'home', he: 'אטלס', n: st.cultures.length, unit: 'תרבויות', line: 'מפה, זמן ודיוקן תרבות.', cols: 'רעיון וזמן · מפה וזום · תרבות' },
+    { id: 'trends', art: 'fate', he: 'תובנות', n: WORLD_ORDER.length, unit: 'עולמות ערכים', line: 'מה כל עולם בוחר, ולמה.', cols: 'עולם · דיוקן · עדויות' },
+    { id: 'article', art: 'risk', he: 'כתבות', n: ARTICLES.length, unit: 'גילויים', line: 'גילויים מתוך המאגר.', cols: 'מגזין · ציטוט · הייקו' },
   ];
   return (
     <main className="app-main home">
@@ -34,7 +48,7 @@ export default function Home() {
         <div className="tones">
           <div className="tone tone-problem"><h4>הבעיה</h4><p>"החיפזון מן השטן" ו"הכה בברזל בעודו חם". <strong>שתי אמיתות</strong>, ואין הוראות שימוש.</p></div>
           <div className="tone tone-solution"><h4>הפתרון</h4><p>לכל מחלוקת <strong>כלל הכרעה</strong>: באיזה מצב כל צד נכון.</p></div>
-          <div className="tone tone-insight"><h4>התובנה</h4><p>{far ? <>אותה מחשבה ב<strong>{CULTURE[far.p.a.culture].he}</strong> וב<strong>{CULTURE[far.p.b.culture].he}</strong>, במרחק <bdi className="num">{fmt(far.d)}</bdi> ק"מ.</> : null}</p></div>
+          <div className="tone tone-insight"><h4>תובנה מתחלפת</h4><Rich as="p" className="rise" key={ix}>{POOL[ix % POOL.length]}</Rich></div>
         </div>
         <nav className="home-map" aria-label="מפת האפליקציה">
           {MAP.map((m, i) => (
@@ -58,6 +72,10 @@ export default function Home() {
             <button className="press icon-btn" onClick={() => setPause((p) => !p)} aria-label={pause ? 'הפעלה' : 'עצירה'} title={pause ? 'הפעלה' : 'עצירה'}><Icon name={pause ? 'play' : 'pause'} size={14} /></button>
           </div>
         </div>
+        <figure className="home-feature rise" key={'f' + idea.id} onClick={() => go('daf', { i: idea.id })}>
+          {(['a', 'b'] as const).map((k) => ART[idea.id]?.[k] && <img key={k} className={`hf-${k}`} src={`./art/${ART[idea.id]![k]!.file}`} alt={ART[idea.id]![k]!.title} style={ART[idea.id]![k]!.pos ? { objectPosition: ART[idea.id]![k]!.pos } : undefined} />)}
+          <figcaption><b>{idea.q}</b><Rich>{idea.insight}</Rich></figcaption>
+        </figure>
         <MiniDaf key={idea.id} ideaIx={ix} />
         <div className="hd-steps" role="group" aria-label="בחירת רעיון">
           {IDEAS.map((x, i) => (

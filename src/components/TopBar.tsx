@@ -66,7 +66,7 @@ export default function TopBar({ page }: { page: string }) {
               {shown.slice(0, 40).map((s) => (
                 <div key={s.id}>
                   <button className="row" role="option" aria-expanded={pv === s.id} onClick={() => { if (page === 'daf') { setOpen(false); go('daf', { i: s.idea, s: s.id }, true); } else setPv(pv === s.id ? null : s.id); }}>
-                    <span><b>"{s.he}"</b><br /><span className="src"><Flag c={s.culture} />{CULTURE[s.culture].he} · {IDEA[s.idea].chip}</span></span>
+                    <span><b>"{s.nikud || s.he}"</b><br /><span className="src"><Flag c={s.culture} />{CULTURE[s.culture].he} · {IDEA[s.idea].chip}</span></span>
                     <span className={`dot ${s.side}`} />
                   </button>
                   {pv === s.id && (

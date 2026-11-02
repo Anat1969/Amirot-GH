@@ -94,4 +94,8 @@ export const ART: Record<string, { a: Art | null; b: Art | null }> = {
     a: { id: 122334, accession: "1942.632", title: "דיוקן נזיר", titleEn: "Portrait of a Monk", artist: "חרארד דוד", artistEn: "Gerard David", date: "early 1500s", culture: "Flanders, Bruges", file: 'pride-a.jpg', why: "A monk with hands joined in prayer: humility." },
     b: { id: 144689, accession: "1969.31", title: "הקיסר צ'יינלונג", titleEn: "Portraits of the Qianlong Emperor and His Twelve Consorts", artist: "ג'וזפה קסטיליונה", artistEn: "Giuseppe Castiglione", date: "1736\u201370s", culture: "China, Qing dynasty (1644\u20131911), Qianlong reign (1736\u201395)", file: 'pride-b.jpg', why: "The Qianlong emperor in dragon robes: majesty and self-worth." },
   },
+  love: {
+    a: { id: 152485, accession: "1985.308", title: "אישה מביטה בזוג צעיר מתחבק במרפסת", titleEn: "Woman Watching Young Couple Embrace on a Veranda", artist: "סוזוקי הרונובו", artistEn: "Suzuki Harunobu", date: "late 1760s", culture: "Japan, Edo period", file: 'love-a.jpg', why: "A young couple embracing: love that conquers." },
+    b: { id: 325423, accession: "2019.52", title: "נפגעי השיטפונות", titleEn: "Sufferers from the Floods", artist: "ג'ון תומסון", artistEn: "John Thomson", date: "1877", culture: "England, Street Life in London", file: 'love-b.jpg', why: "A poor family after the floods: when poverty comes in at the door." },
+  },
 };

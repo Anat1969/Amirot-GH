@@ -1,6 +1,6 @@
 // תרבויות, שפות ועולמות. שפה אינה תרבות: לכל אמירה יש שפה (lang), תרבות (culture) ועולם ערכים (world).
 // דגל = המדינה שבה נמצא היום המקום המייצג של התרבות, ולא טענה על זהות. ערבית כללית מקבלת את דגל הליגה הערבית.
-export type World = 'jewish' | 'islam' | 'china' | 'japan' | 'classical' | 'christian' | 'anglo' | 'europe' | 'other';
+export type World = 'jewish' | 'islam' | 'china' | 'japan' | 'classical' | 'christian' | 'anglo' | 'europe' | 'nordic' | 'other';
 export type Culture = {
   id: string;
   he: string;
@@ -23,13 +23,14 @@ export const WORLDS: Record<World, { he: string; line: string }> = {
   christian: { he: 'הנצרות', line: 'הברית החדשה, הכנסייה ומיסטיקה, ביוונית ולטינית' },
   anglo: { he: 'העולם דובר האנגלית', line: 'אנגליה, סקוטלנד וארצות הברית' },
   europe: { he: 'אירופה היבשתית', line: 'צרפת, גרמניה, שווייץ, איטליה, ספרד ורוסיה' },
+  nordic: { he: 'הצפון', line: 'הוואמאל הנורדית ופתגמי שוודיה, נורווגיה, דנמרק ופינלנד' },
   other: { he: 'עוד עולמות', line: 'פרס, טורקיה, הודו ואפריקה' },
 };
 
 export const LANGS: Record<string, string> = {
   he: 'עברית', arc: 'ארמית', akk: 'אכדית', ar: 'ערבית', en: 'אנגלית', la: 'לטינית', grc: 'יוונית', zh: 'סינית', ja: 'יפנית',
   fr: 'צרפתית', es: 'ספרדית', de: 'גרמנית', it: 'איטלקית', ru: 'רוסית', tr: 'טורקית', am: 'אמהרית', sw: 'סווהילית', fa: 'פרסית',
-  yi: 'יידיש', ko: 'קוריאנית', sa: 'סנסקריט',
+  yi: 'יידיש', ko: 'קוריאנית', sa: 'סנסקריט', non: 'נורדית עתיקה', sv: 'שוודית', no: 'נורווגית', fi: 'פינית',
 };
 
 export const CULTURES: Culture[] = [
@@ -59,6 +60,11 @@ export const CULTURES: Culture[] = [
   { id: 'english', he: 'אנגליה', en: 'England', place: 'לונדון', placeEn: 'London', lat: 51.51, lon: -0.13, flag: 'gb-eng', world: 'anglo', region: 'אירופה' },
   { id: 'scotland', he: 'סקוטלנד', en: 'Scotland', place: 'אדינבורו', placeEn: 'Edinburgh', lat: 55.95, lon: -3.19, flag: 'gb-sct', world: 'anglo', region: 'אירופה' },
   { id: 'american', he: 'ארצות הברית', en: 'United States', place: 'פילדלפיה', placeEn: 'Philadelphia', lat: 39.95, lon: -75.17, flag: 'us', world: 'anglo', region: 'אמריקה' },
+  { id: 'norse', he: 'הנורדים', en: 'Old Norse', place: 'רייקיאוויק', placeEn: 'Reykjavík', lat: 64.15, lon: -21.94, flag: 'is', world: 'nordic', region: 'אירופה' },
+  { id: 'swedish', he: 'שוודיה', en: 'Sweden', place: 'שטוקהולם', placeEn: 'Stockholm', lat: 59.33, lon: 18.07, flag: 'se', world: 'nordic', region: 'אירופה' },
+  { id: 'norwegian', he: 'נורווגיה', en: 'Norway', place: 'אוסלו', placeEn: 'Oslo', lat: 59.91, lon: 10.75, flag: 'no', world: 'nordic', region: 'אירופה' },
+  { id: 'danish', he: 'דנמרק', en: 'Denmark', place: 'ניקובינג מורס', placeEn: 'Nykøbing Mors', lat: 56.79, lon: 8.86, flag: 'dk', world: 'nordic', region: 'אירופה' },
+  { id: 'finnish', he: 'פינלנד', en: 'Finland', place: 'הלסינקי', placeEn: 'Helsinki', lat: 60.17, lon: 24.94, flag: 'fi', world: 'nordic', region: 'אירופה' },
   { id: 'chinese', he: 'סין', en: 'China', place: 'צ\'ו-פו', placeEn: 'Qufu', lat: 35.6, lon: 116.99, flag: 'cn', world: 'china', region: 'מזרח אסיה' },
   { id: 'japanese', he: 'יפן', en: 'Japan', place: 'קיוטו', placeEn: 'Kyoto', lat: 35.01, lon: 135.77, flag: 'jp', world: 'japan', region: 'מזרח אסיה' },
   { id: 'korean', he: 'קוריאה', en: 'Korea', place: 'סיאול', placeEn: 'Seoul', lat: 37.57, lon: 126.98, flag: 'kr', world: 'japan', region: 'מזרח אסיה' },

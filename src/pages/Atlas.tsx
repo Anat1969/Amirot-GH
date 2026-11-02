@@ -1,12 +1,12 @@
 // אטלס: איפה ומתי נאמר כל רעיון. מפה עם מקרא, ציר זמן עם שעון שנים, וקווי מקבילה בין תרבויות.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { geoEqualEarth, geoPath } from 'd3-geo';
+import { geoEqualEarth, geoPath, geoGraticule10 } from 'd3-geo';
 import { feature } from 'topojson-client';
 import land110 from 'world-atlas/land-110m.json';
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom';
 import { select } from 'd3-selection';
 import 'd3-transition';
-import { SAYINGS, IDEAS, IDEA, CULTURES, CULTURE, PAIRS, WORLDS, PORTRAITS, LANGS, LENSES, VALUES, langOf, matcher, type Saying } from '../engine';
+import { SAYINGS, IDEAS, IDEA, CULTURES, CULTURE, PAIRS, WORLDS, PORTRAITS, LANGS, LENSES, VALUES, GROUPS, GROUP_OF, FAMILIES, familiesOf, langOf, matcher, type Saying } from '../engine';
 import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
@@ -93,22 +93,24 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
       </section>
 
       <aside className="panel at-detail">
-        {cult ? <CultureCard id={cult} list={list.filter((s) => s.culture === cult)} onClose={() => set({ c: undefined })} /> : (
-          <div className="panel-bd scroll-in">
-            <span className="label">תרבויות לפי מספר אמירות</span>
-            {CULTURES.filter((c) => byCulture[c.id]).sort((a, b) => byCulture[b.id].n - byCulture[a.id].n).map((c) => {
-              const x = byCulture[c.id];
-              return (
-                <button key={c.id} className="cult-row" onClick={() => set({ c: c.id })}>
+        <div className="panel-bd scroll-in">
+          <span className="label">תרבויות לפי מספר אמירות · לחיצה פותחת דיוקן</span>
+          {CULTURES.filter((c) => byCulture[c.id]).sort((a, b) => byCulture[b.id].n - byCulture[a.id].n).map((c) => {
+            const x = byCulture[c.id];
+            const on = cult === c.id;
+            return (
+              <div key={c.id} className={`cult-item${on ? ' on' : ''}`}>
+                <button className="cult-row" onClick={() => set({ c: on ? undefined : c.id })} aria-expanded={on}>
                   <span><Flag c={c.id} /><b>{c.he}</b><span className="en">{c.en}</span></span>
                   <span className="bar3"><i className="a" style={{ flex: x.a }} /><i className="b" style={{ flex: x.b }} /><i className="s" style={{ flex: x.s }} /></span>
                   <bdi className="num">{x.n}</bdi>
                 </button>
-              );
-            })}
-            {!list.length && <p className="explain">אין אמירות בתקופה ובסינון האלה. אפשר להרחיב את התקופה או לאפס.</p>}
-          </div>
-        )}
+                {on && <CultureProfile id={c.id} focusIdea={idea?.id || null} />}
+              </div>
+            );
+          })}
+          {!list.length && <p className="explain">אין אמירות בתקופה ובסינון האלה. אפשר להרחיב את התקופה או לאפס.</p>}
+        </div>
       </aside>
     </main>
   );
@@ -167,9 +169,14 @@ function MapView({ byCulture, list, idea, cult, onCult, clock }: { byCulture: Re
     <div className="map-box" ref={box}>
       <svg ref={svgRef} width={sz.w} height={sz.h} className="map" style={{ direction: 'ltr' }} aria-label="מפת העולם עם נקודה לכל תרבות. גלגלת: זום, גרירה: הזזה">
         <g transform={`translate(${tf.x},${tf.y}) scale(${k})`}>
-        <path d={path(LAND) || ''} className="land" style={{ strokeWidth: 0.6 / k }} />
-        <path d={path({ type: 'Sphere' } as any) || ''} className="sphere" />
+        <path d={path({ type: 'Sphere' } as any) || ''} className="sphere" style={{ fill: 'url(#ocean)' }} />
+        <path d={path(geoGraticule10()) || ''} className="grat" style={{ strokeWidth: 0.5 / k }} />
+        <path d={path(LAND) || ''} className="land" filter="url(#landShadow)" style={{ strokeWidth: 0.6 / k, fill: 'url(#landFill)' }} />
         <defs>
+          <radialGradient id="ocean" cx="50%" cy="45%" r="70%"><stop offset="0%" stopColor="#f4f7fa" /><stop offset="100%" stopColor="#e3e9ef" /></radialGradient>
+          <linearGradient id="landFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f3f1ea" /><stop offset="100%" stopColor="#dedbd1" /></linearGradient>
+          <filter id="landShadow" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.5" floodColor="#1a1a18" floodOpacity="0.28" /></filter>
+          <filter id="pinShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" floodColor="#1a1a18" floodOpacity="0.4" /></filter>
           <marker id="arr" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6z" style={{ fill: 'var(--side-a)' }} /></marker>
         </defs>
         {arcs.map((p, i) => {
@@ -180,7 +187,7 @@ function MapView({ byCulture, list, idea, cult, onCult, clock }: { byCulture: Re
         })}
         {pts.map((p) => (
           <g key={p.c.id} className={`cpt${cult === p.c.id ? ' on' : ''}`} onClick={() => onCult(p.c.id)} onMouseEnter={() => setHover(p.c.id)} onMouseLeave={() => setHover(null)}>
-            <circle cx={p.x} cy={p.y} r={(p.r + 2) / Math.sqrt(k)} className="halo" />
+            <circle cx={p.x} cy={p.y} r={(p.r + 2) / Math.sqrt(k)} className="halo" filter="url(#pinShadow)" />
             {pie(p.x, p.y, p.r / Math.sqrt(k), p.v)}
             {(showLabel.has(p.c.id) || hover === p.c.id || cult === p.c.id) && (
               <g transform={`translate(${p.x + p.r / Math.sqrt(k) + 4 / k},${p.y}) scale(${1 / k})`}>
@@ -225,41 +232,86 @@ function Timeline({ list, from, to }: { list: Saying[]; from: number; to: number
   );
 }
 
-function CultureCard({ id, list, onClose }: { id: string; list: Saying[]; onClose: () => void }) {
+// דיוקן של תרבות דרך האמירות שלה: עולם המושגים, עקביות, דימויים, ערכים ועדשות. חישוב מהמאגר + פרשנות.
+function CultureProfile({ id, focusIdea }: { id: string; focusIdea: string | null }) {
   const c = CULTURE[id];
+  const [sort, setSort] = useState<'idea' | 'side' | 'time'>('idea');
   const [open, setOpen] = useState<string | null>(null);
-  const langs = [...new Set(list.map(langOf))].map((l) => LANGS[l]);
-  const p = PORTRAITS[c.world];
+  const all = SAYINGS.filter((s) => s.culture === id);
+  const ideas: Record<string, { a: number; b: number; s: number }> = {};
+  all.forEach((s) => ((ideas[s.idea] ||= { a: 0, b: 0, s: 0 })[s.side]++));
+  const covered = Object.keys(ideas).length;
+  const both = Object.entries(ideas).filter(([, v]) => v.a && v.b).map(([k]) => k);
+  const syn = all.filter((s) => s.side === 's').length;
+  const groupCount: Record<string, number> = {};
+  all.forEach((s) => (groupCount[GROUP_OF[s.idea]] = (groupCount[GROUP_OF[s.idea]] || 0) + 1));
+  const topGroups = Object.entries(groupCount).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([g]) => GROUPS.find((x) => x.id === g)!.he);
+  const fam: Record<string, number> = {};
+  all.forEach((s) => familiesOf(s).forEach((f) => (fam[f] = (fam[f] || 0) + 1)));
+  const topFam = Object.entries(fam).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([f]) => FAMILIES.find((x) => x.id === f)!.he);
+  const vals = all.filter((s) => s.side !== 's').map((s) => VALUES[s.idea][s.side as 'a' | 'b']);
+  const valCount: Record<string, number> = {};
+  vals.forEach((v) => (valCount[v] = (valCount[v] || 0) + 1));
+  const topVals = Object.entries(valCount).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([v]) => v);
+  const lens: Record<string, number> = {};
+  Object.values(LENSES).forEach((ls) => ls.forEach((l) => l.c.includes(id) && (lens[l.lens] = (lens[l.lens] || 0) + 1)));
+  const topLens = Object.entries(lens).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([l]) => l);
+  const langs = [...new Set(all.map(langOf))].map((l) => LANGS[l]);
+  const years = all.filter((s) => s.year != null).map((s) => s.year as number);
+  const decisive = covered ? Math.round(((covered - both.length) / covered) * 100) : 0;
+  const coherence = both.length === 0
+    ? `**חד-משמעית**: בכל ${covered} המושגים היא בוחרת צד אחד ונשארת בו.`
+    : both.length / covered > 0.4
+      ? `**דיאלקטית**: ב-${both.length} מתוך ${covered} מושגים היא אומרת גם את הצד וגם את ההפך. ==זו תרבות שנותנת פתגם לכל מצב==.`
+      : `**עקבית ברובה**: ${decisive}% מהמושגים בצד אחד, ורק ב-${both.length} היא מחזיקה בשניהם (${both.map((b) => IDEA[b].chip).join(', ')}).`;
+  const sorted = [...all].sort((a, b) =>
+    sort === 'time' ? (a.year ?? 9999) - (b.year ?? 9999)
+    : sort === 'side' ? a.side.localeCompare(b.side) || a.idea.localeCompare(b.idea)
+    : IDEAS.findIndex((i) => i.id === a.idea) - IDEAS.findIndex((i) => i.id === b.idea));
+  const head = (s: Saying) => sort === 'idea' ? IDEA[s.idea].q : sort === 'side' ? (s.side === 'a' ? 'צד א' : s.side === 'b' ? 'צד ב' : 'הכרעה') : s.year == null ? 'עממי, בלי תאריך' : s.year < 0 ? 'לפני הספירה' : s.year < 1500 ? 'עד 1500' : 'מ-1500';
+  let last = '';
   return (
-    <div className="panel-bd scroll-in cc">
-      <div className="cc-hd">
-        <h2><Flag c={id} size={18} />{c.he}<span className="en">{c.en}</span></h2>
-        <button className="press icon-btn" onClick={onClose} aria-label="סגירה" title="סגירה"><Icon name="x" size={14} /></button>
+    <div className="cprof rise">
+      <p className="src">מקום מייצג: <b>{c.place}</b> {c.placeEn} · עולם: {WORLDS[c.world].he} · שפות: {langs.join(', ')}{years.length ? <> · <Yr y={Math.min(...years)} />–<Yr y={Math.max(...years)} /></> : null}</p>
+      <Rich as="p" className="insight-line">{PORTRAITS[c.world].head}</Rich>
+      <ul className="cp-facts">
+        <li><span className="label">עולם המושגים</span><Rich>{`מדברת בעיקר על **${topGroups.join('** ו**')}**: ${covered} מתוך ${IDEAS.length} מושגים במאגר.`}</Rich></li>
+        <li><span className="label">עקביות</span><Rich>{coherence}</Rich></li>
+        {syn > 0 && <li><span className="label">הכרעות</span><Rich>{`**${syn}** אמירות שמחזיקות בשני הצדדים במשפט אחד: ==חוכמה שמכריעה בעצמה==.`}</Rich></li>}
+        {topFam.length > 0 && <li><span className="label">דימויים</span><Rich>{`לוקחת את התמונות שלה מ**${topFam.join('**, מ**')}**. ==זה מה שקרוב לעין שלה==.`}</Rich></li>}
+        {topVals.length > 0 && <li><span className="label">ערכים</span><Rich>{`בוחרת ב**${topVals.join('**, **')}**.`}</Rich></li>}
+        {topLens.length > 0 && <li><span className="label">עדשה</span><Rich>{`מסבירה מושגים דרך **${topLens.join('** ו**')}**.`}</Rich></li>}
+      </ul>
+      <div className="cp-sort" role="group" aria-label="סידור האמירות">
+        <span className="label">סידור</span>
+        {([['idea', 'לפי מושג'], ['side', 'לפי צד'], ['time', 'לפי זמן']] as const).map(([k, t]) => <button key={k} className="chip" aria-pressed={sort === k} onClick={() => setSort(k)}>{t}</button>)}
       </div>
-      <p className="src">מקום מייצג: <b>{c.place}</b> {c.placeEn} · עולם: {WORLDS[c.world].he} · שפות כאן: {langs.join(', ') || '—'}</p>
-      {p && <Rich as="p" className="insight-line cc-head">{p.head}</Rich>}
-      {list.map((s) => {
+      {sorted.map((s) => {
+        const h = head(s);
+        const showH = h !== last; last = h;
         const on = open === s.id;
-        const lens = (LENSES[s.idea] || []).find((l) => l.c.includes(s.culture));
+        const lensI = (LENSES[s.idea] || []).find((l) => l.c.includes(s.culture));
         return (
-          <div key={s.id} className={`cc-row s-${s.side}${on ? ' on' : ''}`}>
-            <button className="cc-btn" onClick={() => setOpen(on ? null : s.id)} aria-expanded={on}>
-              <span className={`say${s.nikud ? ' nikud' : ''}`}>"{s.nikud || s.he}"</span>
-              <span className="src">{IDEA[s.idea].chip} · {s.side === 's' ? 'הכרעה' : VALUES[s.idea][s.side]} · <Yr y={s.year} approx={s.approx} /></span>
-            </button>
-            {on && (
-              <div className="cc-more">
-                {s.orig && <p className="orig" lang={s.lang} dir="auto">"{s.orig}"</p>}
-                <p className="src">{LANGS[langOf(s)]} · {s.src}</p>
-                {lens && <p className="gloss-lens"><span className={`lens-tag lt-${lens.lens}`}>{lens.lens}</span><Rich>{lens.t}</Rich></p>}
-                {s.note && <p><mark className="insight">{s.note}</mark></p>}
-                <button className="linkish" onClick={() => go('daf', { i: s.idea, s: s.id })}>לדף של "{IDEA[s.idea].chip}"</button>
-              </div>
-            )}
+          <div key={s.id}>
+            {showH && <p className="cp-h">{h}</p>}
+            <div className={`cc-row s-${s.side}${on ? ' on' : ''}${focusIdea && s.idea === focusIdea ? ' focus' : ''}`}>
+              <button className="cc-btn" onClick={() => setOpen(on ? null : s.id)} aria-expanded={on}>
+                <span className="say">"{s.nikud || s.he}"</span>
+                <span className="src">{IDEA[s.idea].chip} · {s.side === 's' ? 'הכרעה' : VALUES[s.idea][s.side]} · <Yr y={s.year} approx={s.approx} /></span>
+              </button>
+              {on && (
+                <div className="cc-more">
+                  {s.orig && <p className="orig" lang={s.lang} dir="auto">"{s.orig}"</p>}
+                  <p className="src">{LANGS[langOf(s)]} · {s.src}</p>
+                  {lensI && <p className="gloss-lens"><span className={`lens-tag lt-${lensI.lens}`}>{lensI.lens}</span><Rich>{lensI.t}</Rich></p>}
+                  {s.note && <p><mark className="insight">{s.note}</mark></p>}
+                  <button className="linkish" onClick={() => go('daf', { i: s.idea, s: s.id })}>לדף של "{IDEA[s.idea].chip}"</button>
+                </div>
+              )}
+            </div>
           </div>
         );
       })}
-      {!list.length && <p className="explain">בסינון הנוכחי אין אמירות מהתרבות הזאת.</p>}
     </div>
   );
 }

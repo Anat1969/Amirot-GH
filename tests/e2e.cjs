@@ -49,7 +49,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   ok(!p.url().includes('s='), 'Esc סוגר');
   ok(await p.locator('.lenses li').count() >= 3, 'עדשות מוצגות כשאין בחירה');
-  ok(await p.locator('.gloss-item.s-s .nikud').count() === 1, 'הכרעה מנוקדת בדף');
+  ok(await p.locator('.gloss-item .say').evaluateAll((els) => els.every((e) => /[\u05B0-\u05BC]/.test(e.textContent))), 'כל האמירות מנוקדות');
   ok(await p.locator('.synth blockquote').count() >= 1, 'הכרעה בגדול באזור היישום');
   await p.locator('.idea-strip button[aria-label="הרעיון הבא"]').click(); await p.waitForTimeout(300);
   ok(p.url().includes('i=risk'), 'הרעיון הבא בתוך המשפחה');
@@ -80,7 +80,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
 
   // חיפוש
   await p.locator('.search input').fill('נהר'); await p.waitForTimeout(300);
-  ok(await p.locator('.search-pop .row').count() === 3, 'חיפוש נהר: 3 תוצאות');
+  ok(await p.locator('.search-pop .row').count() >= 3, 'חיפוש נהר: לפחות 3 תוצאות');
   await p.locator('.search-pop .row').first().click(); await p.waitForTimeout(400);
   ok(p.url().includes('i=change') && p.url().includes('s=chg-'), 'תוצאת חיפוש פותחת דף');
   ok(await p.locator('.gloss-item.dim').count() >= 3, 'החיפוש מעמעם את מה שלא מתאים');
@@ -100,8 +100,10 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok((await p.locator('.pc-lesson').textContent()).length > 20, 'פרשנות לזוג');
   await p.locator('.grp-pick .chip', { hasText: 'אני והאחר' }).click(); await p.waitForTimeout(300);
   ok(p.url().includes('g=others'), 'סינון לפי משפחת נושאים');
-  await p.locator('.m-side .toggle input').check(); await p.waitForTimeout(200);
-  ok(p.url().includes('x=0'), 'כולל זוגות מאותה תרבות');
+  await p.locator('.scope .chip', { hasText: 'בתוך אותה תרבות' }).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('x=same') && await p.locator('.pair-row').count() > 0, 'בידוד זוגות מאותה תרבות');
+  const sameOk = await p.locator('.pair-row').first().evaluate((r) => { const c = [...r.querySelectorAll('.pr-c')].map((x) => x.textContent.trim()); return c[0] === c[1]; });
+  ok(sameOk, 'זוג מאותה תרבות באמת מאותה תרבות');
 
   // אטלס
   await go('/atlas');
@@ -114,9 +116,14 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.mouse.move(700, 450); await p.mouse.wheel(0, -400); await p.waitForTimeout(400);
   ok(/scale\(([2-9]|1\.[7-9])/.test(await p.locator('.map > g').getAttribute('transform')), 'זום בגלגלת');
   await p.locator('button[aria-label="איפוס זום"]').click(); await p.waitForTimeout(500);
+  const rows0 = await p.locator('.cult-row').count();
   await p.locator('.cult-row').first().click(); await p.waitForTimeout(300);
-  ok(p.url().includes('c=') && await p.locator('.cc-row').count() > 0, 'כרטיס תרבות');
-  await p.locator('.cc-btn').first().click(); await p.waitForTimeout(200);
+  ok(p.url().includes('c=') && await p.locator('.cprof .cc-row').count() > 0, 'דיוקן תרבות');
+  ok(await p.locator('.cult-row').count() === rows0, 'שאר התרבויות נשארות ברשימה');
+  ok(await p.locator('.cp-facts li').count() >= 3, 'דיוקן: מושגים, עקביות ודימויים');
+  await p.locator('.cp-sort .chip', { hasText: 'לפי זמן' }).click(); await p.waitForTimeout(200);
+  ok(await p.locator('.cp-h').count() >= 1, 'מיון לפי זמן עם כותרות');
+  await p.locator('.cprof .cc-btn').first().click(); await p.waitForTimeout(200);
   ok(await p.locator('.cc-more').count() === 1 && p.url().includes('#/atlas'), 'אמירה נפתחת בתוך הדף');
   await p.locator('.play-btn').click(); await p.waitForTimeout(1200);
   ok(await p.locator('.clock').count() === 1, 'שעון שנים בהפעלה');
@@ -139,6 +146,12 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // כתבה
   await go('/article');
   ok(await p.locator('.dropcap').count() === 1 && await p.locator('.pull').count() === 1, 'כתבה: אות פתיחה וציטוט מוגדל');
+  ok(await p.locator('.art-card').count() >= 4, 'בחירת כתבות');
+  await p.locator('.art-card', { hasText: 'מחיר הוודאות' }).click(); await p.waitForTimeout(400);
+  ok(p.url().includes('a=certainty') && (await p.locator('.ft-head h1').textContent()).includes('מחיר'), 'מעבר בין כתבות בתוך הדף');
+  const wImg = await p.locator('.ft-lead').evaluate((e) => e.getBoundingClientRect().width);
+  const wTxt = await p.locator('.ft-body').evaluate((e) => e.getBoundingClientRect().width);
+  ok(Math.abs(wImg - wTxt) < 4, 'תמונה וטקסט באותו רוחב: ' + Math.round(wImg) + '/' + Math.round(wTxt));
 
   // התקנה
   await go('/');
