@@ -18,6 +18,8 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // בית
   await go('/');
   ok(await p.locator('h1.home-h1').count() === 1, 'כותרת הבית');
+  { const r = await p.evaluate(() => [...document.querySelectorAll('.md-pic')].map(e => e.getBoundingClientRect()));
+    ok(r.length === 2 && Math.abs(r[0].width - r[1].width) < 1 && r[0].x > r[1].x && r[0].y < r[1].y, 'בית: תמונות לסירוגין, צד א למעלה מימין וצד ב למטה משמאל, באותו רוחב'); }
   ok(await p.locator('ai-menu').count() === 1, 'כפתור לוגו יחיד');
   ok(await p.locator('.map-card').count() === 5, 'מפת התוכן: 5 כרטיסים');
   await p.locator('.step').nth(4).click(); await p.waitForTimeout(300);
