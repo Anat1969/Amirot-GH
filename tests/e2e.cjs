@@ -161,6 +161,19 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   const wTxt = await p.locator('.ft-body').evaluate((e) => e.getBoundingClientRect().width);
   ok(Math.abs(wImg - wTxt) < 4, 'תמונה וטקסט באותו רוחב: ' + Math.round(wImg) + '/' + Math.round(wTxt));
 
+  // לוח תערוכה A4: כפתור הורדה, קובץ PDF קיים בן עמוד אחד, ולוח בגודל A4 בלי גלישה
+  const dl = p.locator('.ft-tools a[download]');
+  ok(await dl.count() === 1 && (await dl.getAttribute('href')) === './print/certainty.pdf', 'כתבה: כפתור הורדה ל-A4');
+  const ids = [...fs.readFileSync('src/data/articles.ts', 'utf8').matchAll(/^ {4}id: '([\w-]+)'/gm)].map((x) => x[1]);
+  const pdfOk = ids.every((id) => { const f = `public/print/${id}.pdf`; if (!fs.existsSync(f)) return false; const t = fs.readFileSync(f).toString('latin1'); return /\/Count 1\b/.test(t) && /59[45](\.\d+)? 841(\.\d+)?\]/.test(t); });
+  ok(ids.length >= 6 && pdfOk, 'לוחות A4: קובץ לכל כתבה, עמוד אחד בגודל A4 (' + ids.length + ')');
+  const resp = await p.request.get(BASE + 'print/certainty.pdf');
+  ok(resp.ok() && (resp.headers()['content-type'] || '').includes('pdf'), 'ההורדה מוגשת כ-PDF');
+  await p.locator('.ft-tools a', { hasText: 'תצוגת הלוח' }).click();
+  await p.waitForSelector('.a4[data-ready="1"]');
+  const a4 = await p.locator('.a4').evaluate((e) => { const r = e.getBoundingClientRect(); const bd = e.querySelector('.a4-body'); return { w: r.width, h: r.height, over: bd.scrollWidth > bd.clientWidth + 1 || bd.scrollHeight > bd.clientHeight + 1, qr: !!e.querySelector('.a4-qr svg') }; });
+  ok(Math.abs(a4.w - 793.7) < 2 && Math.abs(a4.h - 1122.5) < 2 && !a4.over && a4.qr, 'לוח A4: 210×297 מ"מ, בלי גלישה, עם קוד QR');
+
   // התקנה
   await go('/');
   const cdp = await ctx.newCDPSession(p);

@@ -7,8 +7,9 @@ import Mirror from './pages/Mirror';
 import Trends from './pages/Trends';
 const Atlas = lazy(() => import('./pages/Atlas'));
 const Article = lazy(() => import('./pages/Article'));
+const Print = lazy(() => import('./pages/Print'));
 
-const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', article: 'כתבה' };
+const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', article: 'כתבה', print: 'לוח A4' };
 
 export default function App() {
   const { page, params } = useRoute();
@@ -20,12 +21,13 @@ export default function App() {
       case 'atlas': return <Atlas params={params} />;
       case 'trends': return <Trends params={params} />;
       case 'article': return <Article params={params} />;
+      case 'print': return <Print params={params} />;
       default: return <Home />;
     }
   })();
   return (
     <div className={`app-shell page-${page}`}>
-      <TopBar page={page in TITLES ? page : 'home'} />
+      <TopBar page={page === 'print' ? 'article' : page in TITLES ? page : 'home'} />
       <Suspense fallback={<main className="app-main"><p className="label">טוען…</p></main>}>{body}</Suspense>
     </div>
   );
