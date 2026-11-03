@@ -12,6 +12,7 @@ const TABS = [
   { id: 'atlas', he: 'אטלס' },
   { id: 'trends', he: 'תובנות' },
   { id: 'article', he: 'כתבה' },
+  { id: 'creations', he: 'יצירות' },
 ];
 
 export default function TopBar({ page }: { page: string }) {

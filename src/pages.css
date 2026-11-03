@@ -772,3 +772,8 @@
 /* כפתורים סמויים: בלי קו מסגרת, הצורה מהרקע ומהצל */
 .ft-tools .btn, .pp-bar .btn { border-color: transparent; background: var(--rule-soft); box-shadow: var(--shadow-1); }
 .ft-tools .btn.primary, .pp-bar .btn.primary { background: var(--ink); color: #fff; }
+
+/* ───── יצירות ───── */
+/* דף שנקרא בגלילה, כמו הכתבות */
+.creations-page { display: block; max-width: 1280px; margin: 0 auto; padding: 16px clamp(16px, 3vw, 40px) 40px; }
+.app-shell.page-creations { height: auto; min-height: 100dvh; overflow: visible; }
