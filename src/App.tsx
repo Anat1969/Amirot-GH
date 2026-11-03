@@ -8,8 +8,9 @@ import Trends from './pages/Trends';
 const Atlas = lazy(() => import('./pages/Atlas'));
 const Article = lazy(() => import('./pages/Article'));
 const Print = lazy(() => import('./pages/Print'));
+const Creations = lazy(() => import('./pages/Creations'));
 
-const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', article: 'כתבה', print: 'לוח A4' };
+const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', article: 'כתבה', print: 'לוח A4', creations: 'יצירות' };
 
 export default function App() {
   const { page, params } = useRoute();
@@ -22,6 +23,7 @@ export default function App() {
       case 'trends': return <Trends params={params} />;
       case 'article': return <Article params={params} />;
       case 'print': return <Print params={params} />;
+      case 'creations': return <Creations />;
       default: return <Home />;
     }
   })();

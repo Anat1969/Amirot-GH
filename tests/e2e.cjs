@@ -3,6 +3,8 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const BASE = process.argv[2] || 'http://localhost:4173/';
 const MENU = fs.readFileSync(__dirname + '/fixtures/ai-menu.js', 'utf8');
+// עותק של הרכיב המשותף (AppOfApp-GH/public/creations.js), כי הסביבה לא מגיעה ל-Pages ול-Vercel
+const CREATIONS = fs.readFileSync(__dirname + '/fixtures/creations.js', 'utf8');
 let fail = 0, pass = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
 (async () => {
@@ -13,6 +15,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   p.on('pageerror', (e) => errs.push(e.message));
   await p.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
   await p.route('**/fonts.googleapis.com/**', (r) => r.abort());
+  await p.route('**/creations.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: CREATIONS }));
   const go = async (h) => { await p.goto(BASE + '#' + h, { waitUntil: 'networkidle' }); await p.waitForTimeout(500); };
 
   // בית
@@ -173,6 +176,19 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.waitForSelector('.a4[data-ready="1"]');
   const a4 = await p.locator('.a4').evaluate((e) => { const r = e.getBoundingClientRect(); const bd = e.querySelector('.a4-body'); return { w: r.width, h: r.height, over: bd.scrollWidth > bd.clientWidth + 1 || bd.scrollHeight > bd.clientHeight + 1, qr: !!e.querySelector('.a4-qr svg') }; });
   ok(Math.abs(a4.w - 793.7) < 2 && Math.abs(a4.h - 1122.5) < 2 && !a4.over && a4.qr, 'לוח A4: 210×297 מ"מ, בלי גלישה, עם קוד QR');
+
+  // יצירות: חדר לכל נושא, יצירות בכמה עיצובים, הדפסה והעלאה לתערוכה
+  await go('/creations'); await p.waitForSelector('.cr-room');
+  const cr = await p.evaluate(() => ({ rooms: document.querySelectorAll('.cr-room').length, cards: document.querySelectorAll('.cr-grid .cr-card').length, styles: new Set([...document.querySelectorAll('.cr-grid .cr-card')].map((c) => c.className)).size, imp: document.querySelector('.cr-acts a[href*="taarucha.vercel.app/studio/import"]') !== null, over: [...document.querySelectorAll('.cr-grid .cr-card')].filter((c) => c.dataset.fit === 'over').length }));
+  ok(cr.rooms >= 6 && cr.cards >= 40 && cr.styles >= 8 && cr.imp, 'יצירות: ' + JSON.stringify(cr));
+  ok(cr.over === 0, 'יצירות: שום טקסט לא גולש מהגיליון');
+  await p.locator('.cr-zones .cr-btn', { hasText: 'יישום' }).click();
+  ok(await p.locator('.cr-room').count() === 3, 'יצירות: סינון לפי שלב');
+  await p.locator('.cr-open').first().click(); await p.waitForSelector('.cr-lb');
+  ok(await p.locator('.cr-lb .cr-card').count() === 1, 'יצירות: הגדלה בתוך הדף');
+  await p.keyboard.press('Escape');
+  const jpgs = JSON.parse(fs.readFileSync('public/creations.json', 'utf8')).topics.flatMap((t) => t.creations).every((c) => c.png && fs.existsSync('public/' + c.png));
+  ok(jpgs, 'יצירות: קובץ תמונה לכל יצירה, לתערוכה');
 
   // התקנה
   await go('/');

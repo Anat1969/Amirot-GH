@@ -48,7 +48,7 @@
 - **שמירה מקומית** (`amirot.v1`): הצד שלי, האמירה שלי, והחיפוש.
 
 ## בדיקות
-- `node tests/e2e.cjs`: עברו 93 מתוך 93.
+- `node tests/e2e.cjs`: עברו 98 מתוך 98.
 - `tests/fit.cjs`: כל הדפים עוברים, יחס גלילה 1.0 במחשב, ועד 1.3 בנייד.
 - `tests/overlap.cjs`: נקי במחשב. בנייד מתקבלות התרעות שווא על טקסט שגלול בתוך רכיב.
 - `tests/glyph-bounds.cjs`: נקי.
@@ -114,6 +114,17 @@
   - **התאמה לעמוד:** הגוף מתחיל ב-10.2 נקודות, ויורד ב-0.2 עד שאין גלישה.
   - **הפקה:** `node tools/pdf.cjs` מול `vite preview` יוצר את `public/print/<id>.pdf`. מריצים מחדש אחרי כל שינוי בכתבה.
   - e2e בודק שיש קובץ לכל כתבה, ושכל קובץ הוא עמוד A4 אחד.
+
+- 03.11.2026, יצירות (תקן משותף, AppOfApp-GH/docs/creations-standard.md):
+  - **דף "יצירות"** (`#/creations`): 9 חדרים ו-57 יצירות בתשעה עיצובים.
+    - **ידע:** נהר, עין, בעל פה.
+    - **הבנה:** ודאות, "גם וגם", "אל".
+    - **יישום:** חיפזון, שתיקה, אהבה.
+  - **מקור:** הנתונים נגזרים מהכתבות, מהמחלוקות ומהאמנות, ב-`tools/creations.ts`. הרכיב המשותף `<app-creations>` מציג אותם.
+  - **הפקה מחדש:**
+    - `npx esbuild tools/creations.ts --bundle --platform=node | node`.
+    - ואז `CREATIONS_JS=<AppOfApp-GH>/public/creations.js node <AppOfApp-GH>/tools/creations-render.cjs "http://localhost:4173/#/creations" public/creations.json public/creations`.
+  - **לכל יצירה:** קובץ JPG לחדר בתערוכה, הדפסה A4 וכפתור העלאה ל-TAARUCHA.
 
 ## ניקוד
 **כל אמירה נושאת שדה `nikud`, ובממשק מוצג תמיד הנוסח המנוקד.** זה כלל עקביות: ניקוד לכולן, או לאף אחת.
