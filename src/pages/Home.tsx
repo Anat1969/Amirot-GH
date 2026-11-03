@@ -83,17 +83,24 @@ export default function Home() {
   );
 }
 
+// הדף החי בלוח שחמט: כל צד הוא עמודה, ובכל עמודה תמונה וטקסט מתחלפים.
+// שורה עליונה: תמונת צד א מימין, טקסט צד ב משמאל. שורה תחתונה: טקסט צד א מימין, תמונת צד ב משמאל.
+// התמונות יושבות באותה מערכת קואורדינטות של הטקסט, ולכן הן ברוחב העמודה בדיוק ומיושרות אליה בכל גודל מסך.
 function MiniDaf({ ideaIx }: { ideaIx: number }) {
   const idea = IDEAS[ideaIx];
   const ss = BY_IDEA[idea.id];
+  const art = ART[idea.id] || { a: null, b: null };
   const A = ss.filter((s) => s.side === 'a'), B = ss.filter((s) => s.side === 'b'), S = ss.filter((s) => s.side === 's');
-  const W = 640, H = 460, colW = 190, top = 40;
-  const rowH = (n: number) => Math.min(48, (H - top - 90) / Math.max(n, 1));
-  const cx = W / 2, cy = (H - 70) / 2 + 10;
+  const W = 640, H = 560, colW = 190, gx = 16;
+  const xR = W - colW - gx, xL = gx;            // עמודת צד א (ימין) ועמודת צד ב (שמאל)
+  const top0 = 40, band = 206, gap = 12;         // שתי שורות שוות בגובהן
+  const top1 = top0 + band + gap;
+  const cx = W / 2, cy = top0 + band + gap / 2;  // המרכז: נקודת המפגש בין השורות
+  const sTop = top1 + band + 14;
   const bars = (seed: string, n: number) => Array.from({ length: n }, (_, i) => 60 + ((seed.charCodeAt(i % seed.length) * 7 + i * 13) % 70));
-  const col = (list: typeof ss, x0: number, side: 'a' | 'b') => {
-    const h = rowH(list.length);
-    const y0 = cy - (list.length * h) / 2;
+  const col = (list: typeof ss, x0: number, y0band: number, side: 'a' | 'b') => {
+    const h = Math.min(44, band / Math.max(list.length, 1));
+    const y0 = y0band + (band - list.length * h) / 2;
     return list.map((s, i) => {
       const y = y0 + i * h;
       const ex = side === 'a' ? x0 : x0 + colW;
@@ -108,11 +115,25 @@ function MiniDaf({ ideaIx }: { ideaIx: number }) {
       );
     });
   };
+  const pic = (side: 'a' | 'b', x: number, y: number) => {
+    const w = art[side];
+    return (
+      <foreignObject x={x} y={y} width={colW} height={band} className="md-pic-fo">
+        <figure className={`md-pic s-${side}`} dir="rtl">
+          {w ? <img src={`./art/${w.file}`} alt={w.title} style={w.pos ? { objectPosition: w.pos } : undefined} />
+             : <span className="md-pic-type">{side === 'a' ? idea.a : idea.b}</span>}
+          {w && <figcaption><b>{w.title}</b><span>{w.artist}</span></figcaption>}
+        </figure>
+      </foreignObject>
+    );
+  };
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="mini-daf" style={{ direction: 'ltr' }} onClick={() => go('daf', { i: idea.id })} role="link" aria-label={`פתיחת הדף: ${idea.q}`}>
       <rect x="1" y="1" width={W - 2} height={H - 2} className="md-frame" />
-      {col(A, W - colW - 16, 'a')}
-      {col(B, 16, 'b')}
+      <g className="md-item">{pic('a', xR, top0)}</g>
+      <g className="md-item" style={{ animationDelay: '.12s' }}>{pic('b', xL, top1)}</g>
+      {col(A, xR, top1, 'a')}
+      {col(B, xL, top0, 'b')}
       <g className="md-core">
         <rect x={cx - 70} y={cy - 56} width="140" height="112" className="md-core-box" />
         <text x={cx} y={cy - 14} textAnchor="middle" className="md-q">{idea.chip}</text>
@@ -121,13 +142,13 @@ function MiniDaf({ ideaIx }: { ideaIx: number }) {
       </g>
       {S.length > 0 && (
         <g className="md-item" style={{ animationDelay: '.6s' }}>
-          <path d={`M${cx} ${cy + 56} L${cx} ${H - 56}`} className="ink md-spoke s-s" style={{ ['--len' as string]: 200, animationDelay: '.5s' }} />
-          <rect x={cx - 150} y={H - 56} width="300" height="40" className="md-s-box" />
-          <text x={cx} y={H - 31} textAnchor="middle" className="md-name s-s">{S.map((s) => CULTURE[s.culture].he).join(' · ')}</text>
+          <path d={`M${cx} ${cy + 56} L${cx} ${sTop}`} className="ink md-spoke s-s" style={{ ['--len' as string]: 300, animationDelay: '.5s' }} />
+          <rect x={cx - 150} y={sTop} width="300" height="40" className="md-s-box" />
+          <text x={cx} y={sTop + 25} textAnchor="middle" className="md-name s-s">{S.map((s) => CULTURE[s.culture].he).join(' · ')}</text>
         </g>
       )}
-      <text x={W - 16} y={26} textAnchor="end" className="md-hd s-a">{idea.a}</text>
-      <text x={16} y={26} textAnchor="start" className="md-hd s-b">{idea.b}</text>
+      <text x={W - gx} y={26} textAnchor="end" className="md-hd s-a">{idea.a}</text>
+      <text x={gx} y={26} textAnchor="start" className="md-hd s-b">{idea.b}</text>
     </svg>
   );
 }
