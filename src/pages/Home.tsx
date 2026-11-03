@@ -83,8 +83,8 @@ export default function Home() {
   );
 }
 
-// הדף החי בלוח שחמט: כל צד הוא עמודה, ובכל עמודה תמונה וטקסט מתחלפים.
-// שורה עליונה: תמונת צד א מימין, טקסט צד ב משמאל. שורה תחתונה: טקסט צד א מימין, תמונת צד ב משמאל.
+// הדף החי: כל צד הוא עמודה, ובראש כל עמודה התמונה של הצד. שתי התמונות באותו קו גובה.
+// שורה עליונה: תמונת צד א מימין ותמונת צד ב משמאל. שורה תחתונה: הטקסט של כל צד, מתחת לתמונה שלו.
 // התמונות יושבות באותה מערכת קואורדינטות של הטקסט, ולכן הן ברוחב העמודה בדיוק ומיושרות אליה בכל גודל מסך.
 function MiniDaf({ ideaIx }: { ideaIx: number }) {
   const idea = IDEAS[ideaIx];
@@ -131,9 +131,9 @@ function MiniDaf({ ideaIx }: { ideaIx: number }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="mini-daf" style={{ direction: 'ltr' }} onClick={() => go('daf', { i: idea.id })} role="link" aria-label={`פתיחת הדף: ${idea.q}`}>
       <rect x="1" y="1" width={W - 2} height={H - 2} className="md-frame" />
       <g className="md-item">{pic('a', xR, top0)}</g>
-      <g className="md-item" style={{ animationDelay: '.12s' }}>{pic('b', xL, top1)}</g>
+      <g className="md-item" style={{ animationDelay: '.12s' }}>{pic('b', xL, top0)}</g>
       {col(A, xR, top1, 'a')}
-      {col(B, xL, top0, 'b')}
+      {col(B, xL, top1, 'b')}
       <g className="md-core">
         <rect x={cx - 70} y={cy - 56} width="140" height="112" className="md-core-box" />
         <text x={cx} y={cy - 14} textAnchor="middle" className="md-q">{idea.chip}</text>
