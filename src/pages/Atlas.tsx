@@ -6,7 +6,7 @@ import land110 from 'world-atlas/land-110m.json';
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from 'd3-zoom';
 import { select } from 'd3-selection';
 import 'd3-transition';
-import { SAYINGS, IDEAS, IDEA, CULTURES, CULTURE, PAIRS, WORLDS, PORTRAITS, LANGS, LENSES, VALUES, GROUPS, GROUP_OF, FAMILIES, familiesOf, langOf, matcher, type Saying } from '../engine';
+import { SAYINGS, IDEAS, IDEA, CULTURES, CULTURE, PAIRS, WORLDS, WORLD_ORDER, PORTRAITS, LANGS, LENSES, VALUES, GROUPS, GROUP_OF, FAMILIES, familiesOf, langOf, matcher, type Saying } from '../engine';
 import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
@@ -24,7 +24,9 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
   const from = params.f ? +params.f : MIN, to = params.t ? +params.t : MAX;
   const folk = params.folk !== '0';
   const cult = params.c && CULTURE[params.c] ? params.c : null;
-  const set = (patch: Record<string, string | undefined>) => go('atlas', { i: params.i, f: params.f, t: params.t, folk: params.folk, c: params.c, ...patch }, true);
+  const set = (patch: Record<string, string | undefined>) => go('atlas', { i: params.i, f: params.f, t: params.t, folk: params.folk, c: params.c, o: params.o, ...patch }, true);
+  const SORTS = { count: 'לפי מספר', world: 'לפי עולם', region: 'לפי אזור', abc: 'לפי א–ב' } as const;
+  const sortBy = (params.o && params.o in SORTS ? params.o : 'count') as keyof typeof SORTS;
   const m = useMemo(() => matcher(st.q), [st.q]);
   const inTime = (s: Saying) => (s.year == null ? folk : s.year >= from && s.year <= to);
   const list = useMemo(() => SAYINGS.filter((s) => (!idea || s.idea === idea.id) && inTime(s) && (!m || m(s))), [idea, from, to, folk, m]);
@@ -44,6 +46,12 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
     return r;
   }, [list]);
   const regions = new Set(list.map((s) => CULTURE[s.culture].region)).size;
+  const present = CULTURES.filter((c) => byCulture[c.id]);
+  const cultRows = sortBy === 'abc' ? present.slice().sort((a, b) => a.he.localeCompare(b.he, 'he'))
+    : sortBy === 'world' ? present.slice().sort((a, b) => WORLD_ORDER.indexOf(a.world) - WORLD_ORDER.indexOf(b.world) || byCulture[b.id].n - byCulture[a.id].n)
+    : sortBy === 'region' ? present.slice().sort((a, b) => a.region.localeCompare(b.region, 'he') || byCulture[b.id].n - byCulture[a.id].n)
+    : present.slice().sort((a, b) => byCulture[b.id].n - byCulture[a.id].n);
+  const groupOf = (c: (typeof CULTURES)[number]) => sortBy === 'world' ? WORLDS[c.world].he : sortBy === 'region' ? c.region : '';
   // פרשנות של הנתונים: לא רק כמה, אלא מה זה אומר
   const regCount: Record<string, number> = {};
   list.forEach((s) => (regCount[CULTURE[s.culture].region] = (regCount[CULTURE[s.culture].region] || 0) + 1));
@@ -93,22 +101,35 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
       </section>
 
       <aside className="panel at-detail">
+        <div className="list-sort" role="group" aria-label="סידור התרבויות">
+          <span className="label">מסודר {SORTS[sortBy]} · לחיצה על תרבות פותחת דיוקן</span>
+          <div className="eq-btns">
+            {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((k) => <button key={k} className="chip" aria-pressed={sortBy === k} onClick={() => set({ o: k === 'count' ? undefined : k })}>{SORTS[k].replace('לפי ', '')}</button>)}
+          </div>
+        </div>
         <div className="panel-bd scroll-in">
-          <span className="label">תרבויות לפי מספר אמירות · לחיצה פותחת דיוקן</span>
-          {CULTURES.filter((c) => byCulture[c.id]).sort((a, b) => byCulture[b.id].n - byCulture[a.id].n).map((c) => {
-            const x = byCulture[c.id];
-            const on = cult === c.id;
-            return (
-              <div key={c.id} className={`cult-item${on ? ' on' : ''}`}>
-                <button className="cult-row" onClick={() => set({ c: on ? undefined : c.id })} aria-expanded={on}>
-                  <span><Flag c={c.id} /><b>{c.he}</b><span className="en">{c.en}</span></span>
-                  <span className="bar3"><i className="a" style={{ flex: x.a }} /><i className="b" style={{ flex: x.b }} /><i className="s" style={{ flex: x.s }} /></span>
-                  <bdi className="num">{x.n}</bdi>
-                </button>
-                {on && <CultureProfile id={c.id} focusIdea={idea?.id || null} />}
-              </div>
-            );
-          })}
+          {(() => {
+            let last = '';
+            return cultRows.map((c) => {
+              const x = byCulture[c.id];
+              const on = cult === c.id;
+              const g = groupOf(c);
+              const head = g !== last ? (last = g) : null;
+              return (
+                <div key={c.id}>
+                  {head && <p className="cp-h">{head}</p>}
+                  <div className={`cult-item${on ? ' on' : ''}`}>
+                    <button className="cult-row" onClick={() => set({ c: on ? undefined : c.id })} aria-expanded={on}>
+                      <span><Flag c={c.id} /><b>{c.he}</b><span className="en">{c.en}</span></span>
+                      <span className="bar3"><i className="a" style={{ flex: x.a }} /><i className="b" style={{ flex: x.b }} /><i className="s" style={{ flex: x.s }} /></span>
+                      <bdi className="num">{x.n}</bdi>
+                    </button>
+                    {on && <CultureProfile id={c.id} focusIdea={idea?.id || null} />}
+                  </div>
+                </div>
+              );
+            });
+          })()}
           {!list.length && <p className="explain">אין אמירות בתקופה ובסינון האלה. אפשר להרחיב את התקופה או לאפס.</p>}
         </div>
       </aside>
@@ -221,6 +242,7 @@ function Timeline({ list, from, to }: { list: Saying[]; from: number; to: number
   const ticks = [-1000, -500, 0, 500, 1000, 1500, 2000];
   return (
     <div className="timeline">
+      <p className="tl-why"><b>ציר הזמן</b>: כמה אמירות מתוארכות יש בכל מאה, מחמורבי ועד היום. <span className="lg-all" /> כל המאגר <span className="lg-in" /> בסינון הנוכחי <span className="lg-sel" /> התקופה שנבחרה. פתגמים עממיים בלי תאריך לא מופיעים על הציר.</p>
       <svg viewBox={`0 0 ${W} ${H + 16}`} preserveAspectRatio="none" style={{ direction: 'ltr' }} aria-label="ציר זמן: אמירות מתוארכות לפי מאה">
         <rect x={x(from)} y={0} width={Math.max(0, x(to) - x(from))} height={H} className="tl-sel" />
         {bins.map((n, i) => <rect key={i} x={(i * step * W) / (MAX - MIN) + 1} y={H - (n / max) * (H - 6)} width={(step * W) / (MAX - MIN) - 2} height={(n / max) * (H - 6)} className="tl-all" />)}
@@ -235,7 +257,6 @@ function Timeline({ list, from, to }: { list: Saying[]; from: number; to: number
 // דיוקן של תרבות דרך האמירות שלה: עולם המושגים, עקביות, דימויים, ערכים ועדשות. חישוב מהמאגר + פרשנות.
 function CultureProfile({ id, focusIdea }: { id: string; focusIdea: string | null }) {
   const c = CULTURE[id];
-  const [sort, setSort] = useState<'idea' | 'side' | 'time'>('idea');
   const [open, setOpen] = useState<string | null>(null);
   const all = SAYINGS.filter((s) => s.culture === id);
   const ideas: Record<string, { a: number; b: number; s: number }> = {};
@@ -264,11 +285,9 @@ function CultureProfile({ id, focusIdea }: { id: string; focusIdea: string | nul
     : both.length / covered > 0.4
       ? `**דיאלקטית**: ב-${both.length} מתוך ${covered} מושגים היא אומרת גם את הצד וגם את ההפך. ==זו תרבות שנותנת פתגם לכל מצב==.`
       : `**עקבית ברובה**: ${decisive}% מהמושגים בצד אחד, ורק ב-${both.length} היא מחזיקה בשניהם (${both.map((b) => IDEA[b].chip).join(', ')}).`;
-  const sorted = [...all].sort((a, b) =>
-    sort === 'time' ? (a.year ?? 9999) - (b.year ?? 9999)
-    : sort === 'side' ? a.side.localeCompare(b.side) || a.idea.localeCompare(b.idea)
-    : IDEAS.findIndex((i) => i.id === a.idea) - IDEAS.findIndex((i) => i.id === b.idea));
-  const head = (s: Saying) => sort === 'idea' ? IDEA[s.idea].q : sort === 'side' ? (s.side === 'a' ? 'צד א' : s.side === 'b' ? 'צד ב' : 'הכרעה') : s.year == null ? 'עממי, בלי תאריך' : s.year < 0 ? 'לפני הספירה' : s.year < 1500 ? 'עד 1500' : 'מ-1500';
+  // בתוך הדיוקן הסדר קבוע: לפי מושג. הסידור הכללי של הרשימה יושב בראש המסגרת.
+  const sorted = [...all].sort((a, b) => IDEAS.findIndex((i) => i.id === a.idea) - IDEAS.findIndex((i) => i.id === b.idea));
+  const head = (s: Saying) => IDEA[s.idea].q;
   let last = '';
   return (
     <div className="cprof rise">
@@ -282,10 +301,7 @@ function CultureProfile({ id, focusIdea }: { id: string; focusIdea: string | nul
         {topVals.length > 0 && <li><span className="label">ערכים</span><Rich>{`בוחרת ב**${topVals.join('**, **')}**.`}</Rich></li>}
         {topLens.length > 0 && <li><span className="label">עדשה</span><Rich>{`מסבירה מושגים דרך **${topLens.join('** ו**')}**.`}</Rich></li>}
       </ul>
-      <div className="cp-sort" role="group" aria-label="סידור האמירות">
-        <span className="label">סידור</span>
-        {([['idea', 'לפי מושג'], ['side', 'לפי צד'], ['time', 'לפי זמן']] as const).map(([k, t]) => <button key={k} className="chip" aria-pressed={sort === k} onClick={() => setSort(k)}>{t}</button>)}
-      </div>
+      <p className="cp-h0">האמירות של {c.he}, לפי מושג</p>
       {sorted.map((s) => {
         const h = head(s);
         const showH = h !== last; last = h;

@@ -72,10 +72,6 @@ export default function Home() {
             <button className="press icon-btn" onClick={() => setPause((p) => !p)} aria-label={pause ? 'הפעלה' : 'עצירה'} title={pause ? 'הפעלה' : 'עצירה'}><Icon name={pause ? 'play' : 'pause'} size={14} /></button>
           </div>
         </div>
-        <figure className="home-feature rise" key={'f' + idea.id} onClick={() => go('daf', { i: idea.id })}>
-          {(['a', 'b'] as const).map((k) => ART[idea.id]?.[k] && <img key={k} className={`hf-${k}`} src={`./art/${ART[idea.id]![k]!.file}`} alt={ART[idea.id]![k]!.title} style={ART[idea.id]![k]!.pos ? { objectPosition: ART[idea.id]![k]!.pos } : undefined} />)}
-          <figcaption><b>{idea.q}</b><Rich>{idea.insight}</Rich></figcaption>
-        </figure>
         <MiniDaf key={idea.id} ideaIx={ix} />
         <div className="hd-steps" role="group" aria-label="בחירת רעיון">
           {IDEAS.map((x, i) => (
