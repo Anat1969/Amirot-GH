@@ -121,8 +121,10 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(p.url().includes('c=') && await p.locator('.cprof .cc-row').count() > 0, 'דיוקן תרבות');
   ok(await p.locator('.cult-row').count() === rows0, 'שאר התרבויות נשארות ברשימה');
   ok(await p.locator('.cp-facts li').count() >= 3, 'דיוקן: מושגים, עקביות ודימויים');
-  await p.locator('.cp-sort .chip', { hasText: 'לפי זמן' }).click(); await p.waitForTimeout(200);
-  ok(await p.locator('.cp-h').count() >= 1, 'מיון לפי זמן עם כותרות');
+  ok(await p.locator('.cprof .cp-sort').count() === 0, 'אין מיון בתוך דיוקן המדינה');
+  await p.locator('.at-detail .list-sort .chip', { hasText: 'עולם' }).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('o=world') && await p.locator('.at-detail .cp-h').count() >= 3, 'מיון הרשימה בראש המסגרת, עם כותרות קבוצה');
+  ok(await p.locator('.tl-why').count() === 1, 'הסבר לציר הזמן');
   await p.locator('.cprof .cc-btn').first().click(); await p.waitForTimeout(200);
   ok(await p.locator('.cc-more').count() === 1 && p.url().includes('#/atlas'), 'אמירה נפתחת בתוך הדף');
   await p.locator('.play-btn').click(); await p.waitForTimeout(1200);
@@ -134,6 +136,10 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // תובנות
   await go('/trends');
   ok(await p.locator('.ov .finds li').count() >= 6, 'מבט כולל: תובנות מפורשות');
+  await p.locator('.tr-worlds .list-sort .chip', { hasText: 'סתירה' }).click(); await p.waitForTimeout(300);
+  ok(p.url().includes('o=dialectic') && (await p.locator('.wr-metric').first().textContent()).includes('גם וגם'), 'מיון העולמות לפי סתירה, עם המדד');
+  const widths = await p.locator('.tr-worlds .list-sort .chip').evaluateAll((b) => b.map((x) => Math.round(x.getBoundingClientRect().width)));
+  ok(new Set(widths).size === 1, 'כפתורים באותו גודל: ' + widths.join(','));
   await p.locator('.world-row', { hasText: 'היהדות' }).click(); await p.waitForTimeout(300);
   ok(p.url().includes('w=jewish') && await p.locator('.pt-head').count() === 1, 'דיוקן ערכים');
   await p.locator('.vbar').first().click(); await p.waitForTimeout(300);
@@ -146,7 +152,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // כתבה
   await go('/article');
   ok(await p.locator('.dropcap').count() === 1 && await p.locator('.pull').count() === 1, 'כתבה: אות פתיחה וציטוט מוגדל');
-  ok(await p.locator('.art-card').count() >= 4, 'בחירת כתבות');
+  ok(await p.locator('.art-card').count() >= 6, 'בחירת כתבות: 6');
   await p.locator('.art-card', { hasText: 'מחיר הוודאות' }).click(); await p.waitForTimeout(400);
   ok(p.url().includes('a=certainty') && (await p.locator('.ft-head h1').textContent()).includes('מחיר'), 'מעבר בין כתבות בתוך הדף');
   const wImg = await p.locator('.ft-lead').evaluate((e) => e.getBoundingClientRect().width);

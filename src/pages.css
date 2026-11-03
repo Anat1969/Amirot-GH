@@ -656,3 +656,48 @@
   .home-daf { grid-template-rows: auto 170px auto; }
   .home-daf .mini-daf, .home-daf .hd-steps { display: none; }
 }
+
+/* ───── סבב 4 ───── */
+/* דף הבית בלי התמונות הגדולות: הדף החי חוזר למלוא הגובה */
+.home-daf { grid-template-rows: auto minmax(0, 1fr) auto; }
+.mini-daf { height: 100%; max-height: none; }
+@media (max-width: 860px) {
+  .home-daf { grid-template-rows: auto auto; }
+  .home-daf .mini-daf { display: block; height: auto; }
+  .home-daf .hd-steps { display: none; }
+}
+
+/* כפתורים באותה קבוצה באותו גודל, בלי קשר לאורך המילה (כלל ענת, 03.11.2026) */
+.chip { text-align: center; justify-content: center; }
+.eq-btns, .grp-pick, .scope .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 4px; }
+@media (max-width: 1180px) { .zone-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; } }
+@media (max-width: 860px) { .tr-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; } }
+@media (min-width: 861px) { .tr-tabs { display: none !important; } }
+@media (min-width: 1181px) { .zone-tabs { display: none !important; } }
+.eq-btns .chip, .grp-pick .chip, .scope .chip { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.groups { display: grid; grid-template-columns: repeat(5, 118px); gap: 4px; }
+.groups .chip { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topics .topic { flex: 0 0 116px; justify-content: center; }
+.vchips { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); justify-items: stretch; }
+.vchips .chip { width: 100%; }
+/* כפתור סמוי: בלי קו גלוי. רקע עדין, ריווח, צל ותנועה (rules/ux.md, 03.11.2026) */
+.chip { border-color: transparent; box-shadow: 0 1px 2px rgba(26, 26, 24, .10); }
+/* סידור בראש המסגרת */
+.list-sort { padding: 8px 12px 6px; border-bottom: 1px solid var(--rule-soft); display: grid; gap: 4px; }
+.list-sort .src { margin: 0; }
+.wr-metric { font-size: 12px; font-weight: 600; color: var(--side-a); }
+.world-row.on .wr-metric { color: #cfe0ff; }
+.cp-h0 { font-size: 12px; font-weight: 700; color: var(--ink-soft); margin: 4px 0 0; }
+/* הסבר לציר הזמן */
+.tl-why { font-size: 11.5px; color: var(--ink-soft); margin: 0 0 4px; line-height: 1.5; }
+.tl-why span { display: inline-block; width: 10px; height: 10px; vertical-align: middle; margin: 0 4px 0 2px; }
+.tl-why .lg-all { background: #e2e1dc; } .tl-why .lg-in { background: var(--ink); } .tl-why .lg-sel { background: var(--rule-soft); outline: 1px solid #d9d8d3; }
+@media (max-width: 860px) { .groups { grid-template-columns: repeat(5, minmax(0, 1fr)); display: grid; } .topics .topic { flex-basis: 104px; } }
+.groups { flex: 0 1 560px; grid-template-columns: repeat(5, minmax(0, 1fr)); min-width: 0; }
+.topics { overflow: visible; }
+.topics .topic { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.topics .topic span { overflow: hidden; text-overflow: ellipsis; }
+.art-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 640px) { .art-pick { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.groups .chip { white-space: normal; line-height: 1.15; min-height: 34px; padding: 3px 6px; font-size: 12px; }
+.idea-strip { align-items: stretch; }

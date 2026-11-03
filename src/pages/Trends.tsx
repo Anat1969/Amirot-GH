@@ -9,7 +9,20 @@ import Flag from '../components/Flag';
 
 export default function Trends({ params }: { params: Record<string, string> }) {
   const w = (params.w && params.w in WORLDS ? params.w : '') as World | '';
-  const set = (patch: Record<string, string | undefined>) => go('trends', { w: params.w, i: params.i, v: params.v, ...patch }, true);
+  const set = (patch: Record<string, string | undefined>) => go('trends', { w: params.w, i: params.i, v: params.v, o: params.o, ...patch }, true);
+  // סידור הרשימה: הכלי בראש המסגרת, וכתוב לפי מה היא מסודרת
+  const order = (['tradition', 'size', 'dialectic', 'oral'].includes(params.o) ? params.o : 'tradition') as 'tradition' | 'size' | 'dialectic' | 'oral';
+  const ORDERS = { tradition: 'לפי מסורת', size: 'לפי גודל', dialectic: 'לפי סתירה', oral: 'לפי מסירה בעל פה' } as const;
+  const rows = WORLD_ORDER.map(worldStats).filter((x) => x.ss.length);
+  const metric = (x: ReturnType<typeof worldStats>) =>
+    order === 'size' ? x.ss.length
+    : order === 'dialectic' ? x.both.length / Math.max(1, Object.keys(x.ideas).length)
+    : order === 'oral' ? x.ss.filter((s) => s.year == null).length / x.ss.length : 0;
+  const sorted = order === 'tradition' ? rows : rows.slice().sort((a, b) => metric(b) - metric(a));
+  const metricLabel = (x: ReturnType<typeof worldStats>) =>
+    order === 'size' ? `${x.ss.length} אמירות`
+    : order === 'dialectic' ? `גם וגם ב-${x.both.length} מתוך ${Object.keys(x.ideas).length}`
+    : order === 'oral' ? `${Math.round(metric(x) * 100)}% עממי בלי תאריך` : '';
   const [tab, setTab] = useState('m');
   return (
     <main className="app-main trends-page" data-tab={tab}>
@@ -18,17 +31,24 @@ export default function Trends({ params }: { params: Record<string, string> }) {
       </div>
       <aside className="panel tr-matrix tr-worlds">
         <div className="panel-hd"><span className="label">1 · עולמות</span><h2>מי מאמין במה</h2></div>
+        <div className="list-sort" role="group" aria-label="סידור העולמות">
+          <span className="label">מסודר {ORDERS[order]}</span>
+          <div className="eq-btns">
+            {(Object.keys(ORDERS) as (keyof typeof ORDERS)[]).map((k) => <button key={k} className="chip" aria-pressed={order === k} onClick={() => set({ o: k === 'tradition' ? undefined : k })}>{ORDERS[k].replace('לפי ', '')}</button>)}
+          </div>
+          <p className="src">{order === 'tradition' ? 'מהמזרח התיכון מערבה ומזרחה, כמו שהמסורות נולדו.' : order === 'size' ? 'כמה אמירות יש לכל עולם במאגר. גודל משפיע על כל ספירה.' : order === 'dialectic' ? 'באיזה חלק מהמחלוקות העולם אומר גם את הצד וגם את ההפך.' : 'כמה מהאמירות הן פתגם עממי בלי תאריך: מסורת שבעל פה מול מסורת כתובה.'}</p>
+        </div>
         <div className="panel-bd scroll-in">
           <button className={`world-row${!w ? ' on' : ''}`} onClick={() => { set({ w: undefined, i: undefined, v: undefined }); setTab('f'); }}>
             <b>מבט כולל</b><span className="src">מה מחבר את כולם, ושפה מול תרבות</span>
           </button>
-          {WORLD_ORDER.map((id) => {
-            const ws = worldStats(id);
-            if (!ws.ss.length) return null;
+          {sorted.map((ws) => {
+            const id = ws.w;
             const flags = [...new Set(ws.cultures.map((c) => CULTURE[c].flag))];
             return (
               <button key={id} className={`world-row${w === id ? ' on' : ''}`} onClick={() => { set({ w: id, i: undefined, v: undefined }); setTab('f'); }}>
                 <span className="wr-hd"><b>{WORLDS[id].he}</b><span className="wr-flags">{flags.map((f) => <img key={f} className="flag" src={`./flags/${f}.svg`} width={16} height={12} alt="" />)}</span><bdi className="num">{ws.ss.length}</bdi></span>
+                {order !== 'tradition' && <span className="wr-metric">{metricLabel(ws)}</span>}
                 <Rich className="wr-head">{PORTRAITS[id].head}</Rich>
               </button>
             );
@@ -62,6 +82,14 @@ function Overview() {
   const syn = SAYINGS.filter((x) => x.side === 's');
   const synWorlds = Object.entries(syn.reduce((r, x) => ((r[CULTURE[x.culture].world] = (r[CULTURE[x.culture].world] || 0) + 1), r), {} as Record<string, number>)).sort((a, b) => b[1] - a[1]);
   const mine = Object.values(s.stance).filter(Boolean) as string[];
+  const oralPct = (x: World) => { const ss = worldStats(x).ss; return Math.round((ss.filter((q) => q.year == null).length / Math.max(1, ss.length)) * 100); };
+  const abstractPct = (x: World) => { const ss = worldStats(x).ss; return Math.round((ss.filter((q) => !q.motifs.length).length / Math.max(1, ss.length)) * 100); };
+  const vc: Record<string, number> = {};
+  SAYINGS.forEach((q) => { if (q.side !== 's') { const v = VALUES[q.idea][q.side]; vc[v] = (vc[v] || 0) + 1; } });
+  const vs = Object.entries(vc).sort((a, b) => b[1] - a[1]);
+  const topVal = vs[0], secVal = vs[1];
+  const oneSided = st.perIdea.slice().sort((a, b) => Math.abs(b.a - b.b) / (b.a + b.b) - Math.abs(a.a - a.b) / (a.a + a.b))[0];
+  const split = st.perIdea.filter((p) => p.a + p.b >= 8).sort((a, b) => Math.abs(a.a - a.b) - Math.abs(b.a - b.b))[0];
   const items: { t: string; d: string }[] = [
     { t: `==סתירה היא לא באג. היא שיטה.==`, d: `**${dial[0] && WORLDS[dial[0].w].he}** מחזיקה בשני הצדדים ב-**${dial[0].both.length}** מתוך **${Object.keys(dial[0].ideas).length}** מחלוקות, ו**${WORLDS[dial[1].w].he}** ב-**${dial[1].both.length}** מתוך **${Object.keys(dial[1].ideas).length}**. תרבות שמחזיקה גם וגם, נותנת לאדם כלי לכל מצב.` },
     calm.length ? { t: `**${calm.map((x) => WORLDS[x.w].he).join(', ')}**: ==אף סתירה פנימית אחת==.`, d: 'הפתגמים בוחרים צד ונשארים בו: איפוק, ענווה והתמדה. זו תרבות של דרך אחת, ולא של ויכוח.' } : { t: '', d: '' },
@@ -71,6 +99,12 @@ function Overview() {
     { t: `ולהפך: ==תרבות אחת, הרבה שפות==.`, d: `**${WORLDS[lc.multiLangWorlds[0].world].he}** מדברת כאן ב-**${lc.multiLangWorlds[0].langs.length}** שפות: ${lc.multiLangWorlds[0].langs.map((l) => LANGS[l]).join(', ')}. הדגלים לידה מתחלפים בין ארצות, והערכים נשארים.` },
     { t: `**${universal.idea.chip}** הוא הרעיון האוניברסלי ביותר.`, d: `**${universal.cultures}** תרבויות ב-**${universal.regions}** אזורים. ==מה שכולם אומרים, הוא כנראה ניסיון אנושי ולא מסורת==.` },
     { t: `**${fmt(st.kinds.impostor)}** זוגות מתחזים.`, d: 'אותן מילים ומשמעות אחרת. ==מי שמתרגם מילה במילה, מתרגם לא נכון==.' },
+    { t: `==כתוב מול בעל פה.==`, d: `ב**יפן** ${oralPct('japan')}% מהאמירות הן פתגם עממי בלי תאריך, וב**עולם הערבי והאסלאם** ${oralPct('islam')}%. ב**יהדות** רק ${oralPct('jewish')}%, וב**יוון ורומא** ${oralPct('classical')}%. היהדות ורומא מדברות מתוך ספרים, ויפן והעולם הערבי מתוך הרחוב.` },
+    { t: `**הגוף** הוא השפה המשותפת.`, d: `עין, לב, יד ולשון הם מקור הדימוי הנפוץ ביותר ביהדות, באירופה ובאסלאם. ==כשתרבויות רוצות להסביר מושג מופשט, הן מצביעות על הגוף==.` },
+    { t: `**הצפון** מדבר בלי תמונות.`, d: `${abstractPct('nordic')}% מאמירות הצפון אין בהן דימוי בכלל, לעומת ${abstractPct('japan')}% ביפן. ==הוואמאל מלמדת כלל, ויפן מראה ציור==.` },
+    { t: `**${topVal[0]}** הוא הערך הנבחר ביותר בעולם.`, d: `**${topVal[1]}** אמירות בוחרות בו, ואחריו **${secVal[0]}**. ==פתגמים הם זיכרון קיבוצי של זהירות ושל עזרה הדדית==.` },
+    { t: `**${oneSided.idea.chip}**: כמעט כולם מסכימים.`, d: `**${oneSided.a}** אמירות אומרות "${oneSided.idea.a}", ורק **${oneSided.b}** אומרת "${oneSided.idea.b}". ==ככל שהמחלוקת חד-צדדית, הקול השני מפתיע יותר==.` },
+    { t: `**${split.idea.chip}** מחלק את העולם באמצע.`, d: `**${split.a}** מול **${split.b}**. ==כאן אין חוכמה עממית אחת, ולכן כלל ההכרעה חשוב במיוחד==.` },
     mine.length ? { t: `**הנטייה שלי**: ${mine.filter((x) => x === 'a').length} צד א, ${mine.filter((x) => x === 'b').length} צד ב, ${mine.filter((x) => x === 's').length} תלוי.`, d: 'נאסף מ"הצד שלי היום" בכל דף. ככל שיש יותר "תלוי", כך הבחירה קרובה יותר לדרך של המסורות.' } : { t: '**הנטייה שלי**: עוד לא נבחר צד.', d: 'בכל דף, באזור 3, אפשר לבחור צד. הבחירות נאספות כאן לדיוקן אישי.' },
   ].filter((x) => x.t);
   return (
