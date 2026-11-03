@@ -5,6 +5,8 @@ import { ARTICLES, type Article as Art, type Block } from '../data/articles';
 import { ART } from '../data/art';
 import { go } from '../route';
 import Rich from '../Rich';
+import { pdfName } from './Print';
+import { href } from '../route';
 
 export default function Article({ params }: { params: Record<string, string> }) {
   const a = ARTICLES.find((x) => x.id === params.a) || ARTICLES[0];
@@ -64,6 +66,10 @@ function Feature({ a }: { a: Art }) {
   return (
     <article className="feature">
       <header className="ft-head">
+        <div className="ft-tools no-print">
+          <a className="press btn primary" href={`./print/${a.id}.pdf`} download={pdfName(a)} title="קובץ PDF בגודל A4, עמוד אחד, מוכן להדפסה ולתלייה בתערוכה">הורדה ל-A4 לתערוכה</a>
+          <a className="press btn" href={href('print', { a: a.id })}>תצוגת הלוח</a>
+        </div>
         <span className="label">{a.kicker}</span>
         <h1>{a.title}</h1>
         <p className="ft-sub">{a.sub}</p>
