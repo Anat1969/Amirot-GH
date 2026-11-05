@@ -73,8 +73,10 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.locator('.topics .topic', { hasText: 'טיפה' }).click(); await p.waitForTimeout(300);
   ok(p.url().includes('i=drop'), 'בחירת רעיון: משפחה ואז נושא');
   ok(await p.locator('.flag').count() > 10, 'דגלים ליד תרבויות');
-  ok(await p.locator('.diptych .dp img').count() === 2, 'דיפטיכון: שתי יצירות');
-  ok(await p.locator('.diptych img').evaluateAll((im) => im.every((i) => i.complete && i.naturalWidth > 0)), 'היצירות נטענו');
+  // מסגרת ההבנה: כל יצירה בראש העמודה של הצד שלה, עם שמה, ושתיהן באותו קו גובה
+  const sp = await p.evaluate(() => { const a = document.querySelector('.col-a .side-pic'), b = document.querySelector('.col-b .side-pic'); if (!a || !b) return null; const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(); const first = (c) => document.querySelector(c + ' .gloss-item')?.getBoundingClientRect().top; return { same: Math.abs(ra.top - rb.top) < 1, above: first('.col-a') > ra.bottom && first('.col-b') > rb.bottom, names: !!a.querySelector('figcaption b') && !!b.querySelector('figcaption b'), aRight: ra.left > rb.left, intro: document.querySelectorAll('.zone[data-zone="1"] .diptych').length }; });
+  ok(sp && sp.same && sp.above && sp.names && sp.aRight && sp.intro === 0, 'הבנה: יצירה מעל כל צד, עם שם, באותו קו ' + JSON.stringify(sp));
+  ok(await p.locator('.side-pic img').evaluateAll((im) => im.length === 2 && im.every((i) => i.complete && i.naturalWidth > 0)), 'היצירות נטענו');
   await p.locator('.stance .st-a').click();
   await p.locator('textarea').fill('בדיקה: טיפה אחרי טיפה');
   ok(await p.locator('.saved').count() === 1, 'חיווי נשמר');

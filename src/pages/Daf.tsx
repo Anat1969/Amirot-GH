@@ -8,7 +8,7 @@ import Rich, { Yr } from '../Rich';
 import { Icon } from '../icons';
 import Voice from '../components/Voice';
 import Flag, { CultureName } from '../components/Flag';
-import { Diptych } from '../components/Art';
+import { SidePic } from '../components/Art';
 
 const SIDE_HE = { a: 'צד א', b: 'צד ב', s: 'הכרעה' } as const;
 type IdeaT = (typeof IDEAS)[number];
@@ -77,7 +77,6 @@ function Intro({ idea }: { idea: IdeaT }) {
     <section className="panel zone" data-zone="1" aria-labelledby="z1">
       <div className="zone-hd"><span className="zone-n">1</span><h2 id="z1">היכרות</h2><span className="label">מה זה</span></div>
       <div className="panel-bd scroll-in lines-lg" key={idea.id}>
-        <Diptych idea={idea.id} a={idea.a} b={idea.b} />
         <div className="idea-title rise">
           <Icon name={idea.motif} size={30} />
           <h1>{idea.q}</h1>
@@ -208,6 +207,7 @@ function Understand({ idea, sel, select }: { idea: IdeaT; sel: Saying | null; se
           </svg>
           <div className="col col-a" aria-label={`צד א: ${idea.a}`}>
             <div className="col-hd side-a"><span className="dot a" />{idea.a} <bdi className="num">{A.length}</bdi></div>
+            <SidePic idea={idea.id} side="a" label={idea.a} />
             {A.map(Item)}
           </div>
           <div className="core-wrap">
@@ -227,6 +227,7 @@ function Understand({ idea, sel, select }: { idea: IdeaT; sel: Saying | null; se
           </div>
           <div className="col col-b" aria-label={`צד ב: ${idea.b}`}>
             <div className="col-hd side-b"><span className="dot b" />{idea.b} <bdi className="num">{B.length}</bdi></div>
+            <SidePic idea={idea.id} side="b" label={idea.b} />
             {B.map(Item)}
           </div>
           {S.length > 0 && (
