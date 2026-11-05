@@ -27,6 +27,16 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(await p.evaluate(() => getComputedStyle(document.querySelector('.app-shell')).backgroundColor) === 'rgb(17, 17, 15)', 'בית: דף כהה');
   ok(await p.evaluate(() => { const v = document.querySelector('.hx-frame video'); return !!v && v.muted && v.loop; }), 'בית: סרטון מושתק בלולאה');
   ok(await p.evaluate(() => fetch('./video/amirot.mp4', { method: 'HEAD' }).then(r => r.ok)), 'קובץ הסרטון קיים');
+  // הדף החי: המסך השני של הבית, ובראש כל צד התמונה שלו, באותו קו גובה
+  const live = await p.evaluate(() => { const ps = [...document.querySelectorAll('.hx-live .md-pic')].map((e) => e.getBoundingClientRect()); return { n: ps.length, same: ps.length === 2 && Math.abs(ps[0].top - ps[1].top) < 1, below: document.querySelector('.hx-live').getBoundingClientRect().top >= innerHeight - 2 }; });
+  ok(live.n === 2 && live.same && live.below, 'בית: הדף החי מתחת למסך הראשון, שתי תמונות באותו קו גובה ' + JSON.stringify(live));
+  await p.locator('.hx-down').click(); await p.waitForTimeout(900);
+  ok(await p.evaluate(() => Math.abs(document.querySelector('.hx-live').getBoundingClientRect().top - document.querySelector('.home-dark').getBoundingClientRect().top) < 20), 'בית: "הדף החי" גולל אליו');
+  await p.locator('.hx-live .step').nth(3).click(); await p.waitForTimeout(300);
+  const q3 = await p.locator('.hx-live h2').textContent();
+  await p.locator('.hx-live .mini-daf').click(); await p.waitForTimeout(400);
+  ok(p.url().includes('#/daf?i='), 'בית: לחיצה על הדף החי פותחת את הדף (' + q3 + ')');
+  await go('/');
   await p.locator('.hx-card').nth(2).click(); await p.waitForTimeout(400);
   ok(p.url().includes('#/mirror?k=impostor'), 'כרטיס תובנה מוביל למקור');
   await go('/');
@@ -178,18 +188,23 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   const a4 = await p.locator('.a4').evaluate((e) => { const r = e.getBoundingClientRect(); const bd = e.querySelector('.a4-body'); return { w: r.width, h: r.height, over: bd.scrollWidth > bd.clientWidth + 1 || bd.scrollHeight > bd.clientHeight + 1, qr: !!e.querySelector('.a4-qr svg') }; });
   ok(Math.abs(a4.w - 793.7) < 2 && Math.abs(a4.h - 1122.5) < 2 && !a4.over && a4.qr, 'לוח A4: 210×297 מ"מ, בלי גלישה, עם קוד QR');
 
-  // יצירות: חדר לכל נושא, יצירות בכמה עיצובים, הדפסה והעלאה לתערוכה
-  await go('/creations'); await p.waitForSelector('.cr-room');
-  const cr = await p.evaluate(() => ({ rooms: document.querySelectorAll('.cr-room').length, cards: document.querySelectorAll('.cr-grid .cr-card').length, styles: new Set([...document.querySelectorAll('.cr-grid .cr-card')].map((c) => c.className)).size, imp: document.querySelector('.cr-acts a[href*="taarucha.vercel.app/studio/import"]') !== null, over: [...document.querySelectorAll('.cr-grid .cr-card')].filter((c) => c.dataset.fit === 'over').length }));
-  ok(cr.rooms >= 6 && cr.cards >= 40 && cr.styles >= 8 && cr.imp, 'יצירות: ' + JSON.stringify(cr));
-  ok(cr.over === 0, 'יצירות: שום טקסט לא גולש מהגיליון');
-  await p.locator('.cr-zones .cr-btn', { hasText: 'יישום' }).click();
-  ok(await p.locator('.cr-room').count() === 3, 'יצירות: סינון לפי שלב');
-  await p.locator('.cr-open').first().click(); await p.waitForSelector('.cr-lb');
-  ok(await p.locator('.cr-lb .cr-card').count() === 1, 'יצירות: הגדלה בתוך הדף');
-  await p.keyboard.press('Escape');
+  // יצירות ככתבות: כל חדר הוא כתבה בעמוד A4, בדף אחד, מקובצות לפי ידע, הבנה ויישום
+  await go('/creations'); await p.waitForSelector('.a4');
+  await p.waitForFunction(() => [...document.querySelectorAll('.a4')].every((a) => a.dataset.ready === '1'), null, { timeout: 20000 });
+  const cr = await p.evaluate(() => ({
+    zones: [...document.querySelectorAll('.ca-zone-h b')].map((b) => b.textContent),
+    perZone: [...document.querySelectorAll('.ca-zone')].map((z) => z.querySelectorAll('.a4').length),
+    over: [...document.querySelectorAll('.a4-body')].filter((b) => b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1).length,
+    pdf: [...document.querySelectorAll('.ca-acts a[download]')].map((a) => a.getAttribute('href')),
+    imp: document.querySelectorAll('.ca-acts a[href*="taarucha.vercel.app/studio/import"]').length,
+  }));
+  ok(cr.zones.join() === 'ידע,הבנה,יישום' && cr.perZone.join() === '3,3,3', 'יצירות: 9 כתבות בשלושה שלבים ' + JSON.stringify(cr.perZone));
+  ok(cr.over === 0, 'יצירות: שום כתבה לא גולשת מעמוד ה-A4');
+  ok(cr.pdf.length === 9 && cr.pdf.every((h) => fs.existsSync('public/' + h.replace('./', ''))) && cr.imp === 9, 'יצירות: PDF והעלאה לתערוכה לכל כתבה');
+  await p.locator('.ca-zones .btn', { hasText: 'יישום' }).click(); await p.waitForTimeout(2000);
+  ok(await p.evaluate(() => { const t = document.getElementById('ca-יישום').getBoundingClientRect().top; return t > 0 && t < 200 && document.querySelector('.topbar').getBoundingClientRect().top === 0; }), 'יצירות: קפיצה לשלב, והסרגל נשאר במקומו');
   const jpgs = JSON.parse(fs.readFileSync('public/creations.json', 'utf8')).topics.flatMap((t) => t.creations).every((c) => c.png && fs.existsSync('public/' + c.png));
-  ok(jpgs, 'יצירות: קובץ תמונה לכל יצירה, לתערוכה');
+  ok(jpgs, 'יצירות: קובץ תמונה לכל יצירה, לחדרי התערוכה');
 
   // התקנה
   await go('/');

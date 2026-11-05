@@ -1,10 +1,13 @@
-// דף הבית: דף כהה של השראה. המטרה, הסרטון ושש התובנות שהמאגר חשף.
+// דף הבית: דף כהה של השראה. המסך הראשון: המטרה, הסרטון ושש התובנות שהמאגר חשף.
+// המסך השני: הדף החי, דף גמרא שמתחלף בין המחלוקות, ובראש כל צד התמונה שלו.
 // כל המספרים מחושבים מהמאגר בזמן ריצה, כדי שהדף יישאר נכון כשהמאגר גדל.
-import { useMemo, useRef, useState } from 'react';
-import { IDEAS, SAYINGS, PAIRS, WORLD_ORDER, worldStats, stats, fmt } from '../engine';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { IDEAS, BY_IDEA, CULTURE, SAYINGS, PAIRS, WORLD_ORDER, worldStats, stats, fmt } from '../engine';
 import { ARTICLES } from '../data/articles';
-import { href } from '../route';
+import { ART } from '../data/art';
+import { go, href } from '../route';
 import Rich from '../Rich';
+import { Icon } from '../icons';
 
 // הסרטון הנוכחי שקט, עם כתוביות. כשתעלה הגרסה עם הקול של אברי (tools/video/make.cjs), מחליפים ל-true.
 const VOICED = false;
@@ -43,6 +46,7 @@ export default function Home() {
 
   return (
     <main className="app-main home-dark" dir="rtl">
+      <div className="hx-screen">
       <section className="hx-purpose">
         <span className="hx-kicker">אטלס של פתגמים וציטוטים · <bdi className="num">{SAYINGS.length}</bdi> אמירות · <bdi className="num">{st.cultures.length}</bdi> תרבויות</span>
         <h1 className="home-h1">כל תרבות אומרת משהו.<br /><span className="hx-b">ואת ההפך.</span></h1>
@@ -67,6 +71,7 @@ export default function Home() {
         </div>
         <div className="hx-film-bar">
           <span className="hx-film-t">סיור של דקה וחצי: <b>מהדף, דרך המראה והאטלס, אל הגילויים</b></span>
+          <button className="hx-down" onClick={() => { const m = document.querySelector('.home-dark'), t = document.querySelector('.hx-live'); if (m && t) m.scrollTo({ top: (t as HTMLElement).offsetTop - 8, behavior: 'smooth' }); }}>הדף החי ↓</button>
           {VOICED && <button className="hx-btn" onClick={sound} aria-pressed={!muted}>{muted ? 'צפייה עם קול' : 'השתקה'}</button>}
         </div>
       </section>
@@ -80,6 +85,117 @@ export default function Home() {
           </a>
         ))}
       </section>
+      </div>
+
+      <LiveDaf />
     </main>
+  );
+}
+
+// המסך השני: הדף החי. מתחיל ממחלוקת אקראית ומתחלף כל 7 שניות. ריחוף או לחיצה עוצרים אותו, ולחיצה על הדף פותחת אותו.
+function LiveDaf() {
+  const [ix, setIx] = useState(() => Math.floor(Math.random() * IDEAS.length));
+  const [pause, setPause] = useState(false);
+  useEffect(() => {
+    if (pause || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = setInterval(() => setIx((i) => (i + 1) % IDEAS.length), 7000);
+    return () => clearInterval(t);
+  }, [pause]);
+  const idea = IDEAS[ix];
+  return (
+    <section className="hx-live" onMouseEnter={() => setPause(true)} onMouseLeave={() => setPause(false)} aria-label="הדף החי: מחלוקת מתחלפת">
+      <div className="hx-live-text">
+        <span className="hx-kicker">הדף החי · <bdi className="num">{ix + 1}</bdi> מתוך <bdi className="num">{IDEAS.length}</bdi> מחלוקות</span>
+        <h2>{idea.q}</h2>
+        <Rich as="p" className="hx-live-ins" key={idea.id}>{idea.insight}</Rich>
+        <div className="hx-live-rule">
+          <p className="t-a"><b>{idea.a}</b><Rich as="span">{idea.rule.a}</Rich></p>
+          <p className="t-b"><b>{idea.b}</b><Rich as="span">{idea.rule.b}</Rich></p>
+        </div>
+        <div className="legend">
+          <span><span className="dot a" />צד א</span><span><span className="dot b" />צד ב</span><span><span className="dot s" />הכרעה</span>
+        </div>
+        <div className="hx-live-ctl">
+          <button className="hx-btn" onClick={() => go('daf', { i: idea.id })}>לדף המלא ←</button>
+          <button className="hx-icon" onClick={() => setPause((p) => !p)} aria-label={pause ? 'הפעלה' : 'עצירה'} title={pause ? 'הפעלה' : 'עצירה'}><Icon name={pause ? 'play' : 'pause'} size={14} /></button>
+        </div>
+        <div className="hd-steps" role="group" aria-label="בחירת מחלוקת">
+          {IDEAS.map((x, i) => (
+            <button key={x.id} className={`step${i === ix ? ' on' : ''}`} onClick={() => { setIx(i); setPause(true); }} aria-label={x.chip} title={x.chip} />
+          ))}
+        </div>
+      </div>
+      <MiniDaf key={idea.id} ideaIx={ix} />
+    </section>
+  );
+}
+
+// הדף החי: כל צד הוא עמודה, ובראש כל עמודה התמונה של הצד. שתי התמונות באותו קו גובה.
+// שורה עליונה: תמונת צד א מימין ותמונת צד ב משמאל. שורה תחתונה: הטקסט של כל צד, מתחת לתמונה שלו.
+// התמונות יושבות באותה מערכת קואורדינטות של הטקסט, ולכן הן ברוחב העמודה בדיוק ומיושרות אליה בכל גודל מסך.
+function MiniDaf({ ideaIx }: { ideaIx: number }) {
+  const idea = IDEAS[ideaIx];
+  const ss = BY_IDEA[idea.id];
+  const art = ART[idea.id] || { a: null, b: null };
+  const A = ss.filter((s) => s.side === 'a'), B = ss.filter((s) => s.side === 'b'), S = ss.filter((s) => s.side === 's');
+  const W = 640, H = 560, colW = 190, gx = 16;
+  const xR = W - colW - gx, xL = gx;            // עמודת צד א (ימין) ועמודת צד ב (שמאל)
+  const top0 = 40, band = 206, gap = 12;         // שתי שורות שוות בגובהן
+  const top1 = top0 + band + gap;
+  const cx = W / 2, cy = top0 + band + gap / 2;  // המרכז: נקודת המפגש בין השורות
+  const sTop = top1 + band + 14;
+  const bars = (seed: string, n: number) => Array.from({ length: n }, (_, i) => 60 + ((seed.charCodeAt(i % seed.length) * 7 + i * 13) % 70));
+  const col = (list: typeof ss, x0: number, y0band: number, side: 'a' | 'b') => {
+    const h = Math.min(44, band / Math.max(list.length, 1));
+    const y0 = y0band + (band - list.length * h) / 2;
+    return list.map((s, i) => {
+      const y = y0 + i * h;
+      const ex = side === 'a' ? x0 : x0 + colW;
+      const tx = side === 'a' ? cx + 70 : cx - 70;
+      const len = bars(s.id, 2);
+      return (
+        <g key={s.id} className="md-item" style={{ animationDelay: `${0.15 + i * 0.07}s` }}>
+          <path d={`M${ex} ${y + h / 2 - 4} C${(ex + tx) / 2} ${y + h / 2 - 4} ${(ex + tx) / 2} ${cy} ${tx} ${cy}`} className={`ink md-spoke s-${side}`} style={{ ['--len' as string]: 300, animationDelay: `${0.1 + i * 0.07}s` }} />
+          <text x={x0 + colW - 4} y={y + 14} textAnchor="end" className={`md-name s-${side}`}>{CULTURE[s.culture].he}</text>
+          {len.map((l, k) => <rect key={k} x={x0 + colW - 4 - (l / 130) * (colW - 10)} y={y + 20 + k * 7} width={(l / 130) * (colW - 10)} height={3} className="md-bar" />)}
+        </g>
+      );
+    });
+  };
+  const pic = (side: 'a' | 'b', x: number, y: number) => {
+    const w = art[side];
+    return (
+      <foreignObject x={x} y={y} width={colW} height={band} className="md-pic-fo">
+        <figure className={`md-pic s-${side}`} dir="rtl">
+          {w ? <img src={`./art/${w.file}`} alt={w.title} style={w.pos ? { objectPosition: w.pos } : undefined} />
+             : <span className="md-pic-type">{side === 'a' ? idea.a : idea.b}</span>}
+          {w && <figcaption><b>{w.title}</b><span>{w.artist}</span></figcaption>}
+        </figure>
+      </foreignObject>
+    );
+  };
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mini-daf" style={{ direction: 'ltr' }} onClick={() => go('daf', { i: idea.id })} role="link" aria-label={`פתיחת הדף: ${idea.q}`}>
+      <rect x="1" y="1" width={W - 2} height={H - 2} className="md-frame" />
+      <g className="md-item">{pic('a', xR, top0)}</g>
+      <g className="md-item" style={{ animationDelay: '.12s' }}>{pic('b', xL, top0)}</g>
+      {col(A, xR, top1, 'a')}
+      {col(B, xL, top1, 'b')}
+      <g className="md-core">
+        <rect x={cx - 70} y={cy - 56} width="140" height="112" className="md-core-box" />
+        <text x={cx} y={cy - 14} textAnchor="middle" className="md-q">{idea.chip}</text>
+        <text x={cx} y={cy + 12} textAnchor="middle" className="md-sub s-a">{idea.a}</text>
+        <text x={cx} y={cy + 32} textAnchor="middle" className="md-sub s-b">{idea.b}</text>
+      </g>
+      {S.length > 0 && (
+        <g className="md-item" style={{ animationDelay: '.6s' }}>
+          <path d={`M${cx} ${cy + 56} L${cx} ${sTop}`} className="ink md-spoke s-s" style={{ ['--len' as string]: 300, animationDelay: '.5s' }} />
+          <rect x={cx - 150} y={sTop} width="300" height="40" className="md-s-box" />
+          <text x={cx} y={sTop + 25} textAnchor="middle" className="md-name s-s">{S.map((s) => CULTURE[s.culture].he).join(' · ')}</text>
+        </g>
+      )}
+      <text x={W - gx} y={26} textAnchor="end" className="md-hd s-a">{idea.a}</text>
+      <text x={gx} y={26} textAnchor="start" className="md-hd s-b">{idea.b}</text>
+    </svg>
   );
 }
