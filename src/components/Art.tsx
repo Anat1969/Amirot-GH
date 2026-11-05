@@ -38,3 +38,21 @@ export function Diptych({ idea, a, b, compact = false }: { idea: string; a: stri
 }
 
 export const artThumb = (idea: string) => ART[idea]?.a?.file || ART[idea]?.b?.file || null;
+
+// תמונת צד בתוך מסגרת ההבנה: היצירה עומדת בראש העמודה של הצד שלה, מעל האמירות שלו, עם שם היצירה והאמן.
+// שתי התמונות באותו גובה, ולכן הן נמצאות באותו קו בשתי העמודות. לחיצה מגדילה ומחזירה.
+export function SidePic({ idea, side, label }: { idea: string; side: 'a' | 'b'; label: string }) {
+  const [big, setBig] = useState(false);
+  const art = ART[idea]?.[side] || null;
+  if (!art) {
+    return <figure className={`side-pic s-${side} sp-type`}><span>{label}</span></figure>;
+  }
+  return (
+    <figure className={`side-pic s-${side}${big ? ' big' : ''}`}>
+      <button className="sp-img" onClick={() => setBig((b) => !b)} aria-pressed={big} title={big ? 'הקטנה' : `הגדלה: ${art.titleEn} · ${art.artistEn}`}>
+        <img src={`./art/${art.file}`} alt={`${art.title}, ${art.artist}`} loading="lazy" style={art.pos && !big ? { objectPosition: art.pos } : undefined} />
+      </button>
+      <figcaption><b>{art.title}</b><span>{art.artist}, <bdi>{art.date}</bdi></span></figcaption>
+    </figure>
+  );
+}
