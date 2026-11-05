@@ -1,6 +1,6 @@
 // כתבות של גילוי: כל כתבה מזקקת משהו שעלה מתוך החקירה של המאגר, ושלא היה נראה בלי ההצלבה.
 // מספרים מחושבים בזמן ריצה מהמאגר, כדי שהכתבה תישאר נכונה כשהמאגר גדל.
-import { worldStats, WORLDS, BY_ID, km, fmt, SAYINGS, IDEAS } from '../engine';
+import { worldStats, WORLDS, BY_ID, km, fmt, SAYINGS, IDEAS, IDEA } from '../engine';
 
 export type Block =
   | { p: string }
@@ -9,8 +9,13 @@ export type Block =
   | { insight: string }
   | { haiku: [string, string, string]; note: string };
 
+export type Zone = 'ידע' | 'הבנה' | 'יישום';
+export const ZONES: Zone[] = ['ידע', 'הבנה', 'יישום'];
+
 export type Article = {
   id: string;
+  /** השלב בדף היצירות: ידע, הבנה או יישום */
+  zone: Zone;
   kicker: string;
   title: string;
   sub: string;
@@ -25,11 +30,13 @@ const W = (w: Parameters<typeof worldStats>[0]) => worldStats(w);
 const j = W('jewish'), an = W('anglo'), jp = W('japan'), no = W('nordic'), ch = W('christian');
 const frac = (x: ReturnType<typeof W>) => `${x.both.length} מתוך ${Object.keys(x.ideas).length}`;
 const say = (id: string) => BY_ID[id].nikud || BY_ID[id].he;
+const src = (ids: string[]) => ids.map((i) => `${BY_ID[i].he}: ${BY_ID[i].src}`);
 const oral = (w: Parameters<typeof worldStats>[0]) => { const ss = W(w).ss; return Math.round((ss.filter((x) => x.year == null).length / Math.max(1, ss.length)) * 100); };
 
 export const ARTICLES: Article[] = [
   {
     id: 'river',
+    zone: 'ידע',
     kicker: 'הכול זורם, או אין חדש?',
     title: 'שני חכמים, נהר אחד',
     sub: 'במאה החמישית לפני הספירה, בשני קצוות של העולם הידוע, שני אנשים הביטו במים ואמרו כמעט את אותו משפט.',
@@ -52,6 +59,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: 'certainty',
+    zone: 'הבנה',
     kicker: 'גילוי מתוך המאגר',
     title: 'מחיר הוודאות',
     sub: 'חמש שפות אומרות "עדיפה ציפור ביד". כשמניחים אותן זו ליד זו, מתגלה שכל אחת מתמחרת את הוודאות במטבע אחר.',
@@ -73,6 +81,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: 'both',
+    zone: 'הבנה',
     kicker: 'גילוי מתוך המאגר',
     title: 'תרבויות של "גם וגם", ותרבויות של דרך אחת',
     sub: `כשסופרים בכל עולם תרבותי באילו מחלוקות הוא אומר את שני הצדדים, העולם מתחלק לשניים: מי שמחזיק בסתירה, ומי שבוחר צד.`,
@@ -95,6 +104,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: 'eye',
+    zone: 'ידע',
     kicker: 'גילוי מתוך המאגר',
     title: 'ארבע מילים, אלף שנה',
     sub: '"עין תחת עין" עבר מבבל לירושלים, משם לבית המדרש ולגליל. בכל תחנה המילים נשארו, והמשמעות הפכה.',
@@ -117,6 +127,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: 'not',
+    zone: 'הבנה',
     kicker: 'גילוי מתוך המאגר',
     title: 'ההבדל הוא במילה "אל"',
     sub: 'כלל הזהב מופיע בתשע תרבויות. כשמסדרים אותן זו ליד זו, מתגלה שהן מתחלקות לשתי משפחות, לפי מילה אחת.',
@@ -138,6 +149,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: 'oral',
+    zone: 'ידע',
     kicker: 'גילוי מתוך המאגר',
     title: 'כתוב מול בעל פה',
     sub: 'כשבודקים לכל עולם כמה מהאמירות שלו הן פתגם עממי בלי תאריך, העולם מתחלק לתרבויות של ספר ותרבויות של רחוב.',
@@ -156,5 +168,71 @@ export const ARTICLES: Article[] = [
     post: `בדקתי לכל תרבות כמה מהפתגמים שלה הם עממיים, בלי מחבר ובלי שנה.\nיפן: ${oral('japan')}%. העולם הערבי: ${oral('islam')}%.\nהיהדות: ${oral('jewish')}%. יוון ורומא: ${oral('classical')}%.\nתרבויות של ספר שומרות גם את הדעה שנדחתה, ולכן הן מלאות סתירות.\nתרבויות של רחוב שוכחות אותה, ומשאירות רק את מה שעובד.\nממה אתם יודעים את מה שאתם יודעים, מספר או מהרחוב?`,
     notes: ['הספירה מתוך המאגר: פתגם בלי תאריך מתועד מסומן "עממי".', 'age-mali'].map((i) => (BY_ID[i] ? `${BY_ID[i].he}: ${BY_ID[i].src}` : i)),
     related: [{ label: 'לתובנות: סידור לפי מסירה בעל פה', page: 'trends', params: { o: 'oral' } }],
+  },
+  // ===== יישום: שלוש כתבות שנולדו מחדרי היצירות. כל אחת נשענת על מחלוקת אחת ועל כלל ההכרעה שלה =====
+  {
+    id: 'haste',
+    zone: 'יישום',
+    kicker: 'למהר או להמתין?',
+    title: 'מהר לאט',
+    sub: '"החיפזון מן השטן" ו"הכה בברזל בעודו חם" נשמעים כמו ריב. הם עונים על שתי שאלות שונות, וקיסר אחד חיבר אותם לשתי מילים.',
+    lead: { idea: 'haste' },
+    body: [
+      { p: `הפתגם הערבי "${say('haste-ar')}" עבר לעברית המדוברת כמעט בלי שינוי. **קונפוציוס** אמר: "${say('haste-cn')}". ביפן אומרים: "${say('haste-jp')}". ובאנגלית, באוסף של ג'ון הייווד John Heywood משנת **1546**: "${say('haste-en')}".` },
+      { p: `ובצד השני: **הלל** שואל "${say('haste-hillel')}". אצל **צ'וסר** Chaucer, סביב **1386**: "${say('haste-iron-en')}". ו**הורטיוס** Horace, בשנת **23** לפני הספירה: "${say('haste-carpe')}".` },
+      { p: 'האנגלית מחזיקה בשני הצדדים: חיפזון מוליד בזבוז, והזמן והגאות אינם מחכים לאיש. זו לא סתירה. **הראשון שואל כמה עולה טעות, והשני שואל כמה זמן נשאר.**' },
+      { insight: '==המהירות אינה הבעיה. הטעות היא.== מאטים כשהטעות יקרה ואי אפשר לתקן אותה. פועלים כשחלון ההזדמנות קצר והוא נסגר.' },
+      { pull: say('haste-festina'), cite: 'הקיסר אוגוסטוס, אצל סוטוניוס Suetonius, חיי אוגוסטוס 25' },
+      { p: 'אוגוסטוס חזר על האמרה שוב ושוב. בונציה Venezia של המאה ה-16 היא הפכה לסמל של בית הדפוס של **אלדוס מנוטיוס** Aldus Manutius: עוגן ודולפין. העוגן מאט, והדולפין ממהר.' },
+      { h: 'בעיר: תוכנית מתאר וחנייה לאירוע' },
+      { p: 'תוכנית מתאר כוללת מחכה לשנים, כי טעות בה נשארת בעיר לדורות. חנייה זמנית לאירוע נקבעת היום, כי מחר כבר מאוחר. ==אותה עירייה, ושני קצבים==.' },
+      { haiku: IDEA.haste.haiku as [string, string, string], note: IDEA.haste.haikuNote },
+    ],
+    post: IDEA.haste.post,
+    notes: src(['haste-ar', 'haste-cn', 'haste-jp', 'haste-en', 'haste-hillel', 'haste-iron-en', 'haste-carpe', 'haste-tide', 'haste-festina']),
+    related: [{ label: 'לדף "למהר או להמתין?"', page: 'daf', params: { i: 'haste' } }],
+  },
+  {
+    id: 'silence',
+    zone: 'יישום',
+    kicker: 'לשתוק או לדבר?',
+    title: 'השתיקה זהב, עד שהיא הסכמה',
+    sub: 'התלמוד מתמחר את השתיקה בשני סלעים, ובמסכת אחרת קובע שהיא הודאה. השתיקה נשמעת כמו מקום בטוח, אבל היא לא ניטרלית.',
+    lead: { idea: 'silence' },
+    body: [
+      { p: `במסכת מגילה: "${say('sil-sela')}". **רבי עקיבא**: "${say('sil-akiva')}". **לאו-דזה**: "${say('sil-laozi')}". ביפן: "${say('sil-jp-flower')}". ובצפון, ב**הוואמאל** Hávamál: "${say('nor-silent')}".` },
+      { p: `**1,300** שנה אחרי מסכת מגילה, **תומס קרלייל** Thomas Carlyle הציג ב-**1836** את "${say('sil-carlyle')}" ככתובת שווייצרית. המחיר נשאר, רק המטבע התחלף: מסלעים לכסף וזהב.` },
+      { pull: say('sil-consent'), cite: 'יבמות פז ע"ב' },
+      { p: `ואז הצד השני. אותו תלמוד קובע ששתיקה נחשבת הסכמה, והכנסייה מנסחת ב-**1298**: "${say('sil-tacet')}". באמריקה "${say('sil-wheel')}", ובסין "${say('sil-cn-cry')}". העולם הערבי חריף מכולם: "${say('sil-ar')}".` },
+      { insight: '==השתיקה אינה ניטרלית.== כשאינך יודע, היא מגינה עליך. כשמצפים לתגובה, היא נרשמת כהסכמה.' },
+      { p: `**קהלת** סגר את המחלוקת בארבע מילים: "${say('sil-kohelet')}". שאלת הבקרה: ${IDEA.silence.check}` },
+      { h: 'בעיר: ההתנגדות שלא הוגשה' },
+      { p: 'בתוכנית בנייה שהופקדה, מי ששותק בזמן ההתנגדויות ==נחשב כמי שהסכים==. בוועדה, שתיקה היא עמדה, והיא נרשמת בפרוטוקול.' },
+      { haiku: IDEA.silence.haiku as [string, string, string], note: IDEA.silence.haikuNote },
+    ],
+    post: IDEA.silence.post,
+    notes: src(['sil-sela', 'sil-akiva', 'sil-laozi', 'nor-silent', 'sil-carlyle', 'sil-consent', 'sil-tacet', 'sil-wheel', 'sil-ar', 'sil-kohelet']),
+    related: [{ label: 'לדף "לשתוק או לדבר?"', page: 'daf', params: { i: 'silence' } }],
+  },
+  {
+    id: 'love',
+    zone: 'יישום',
+    kicker: 'האהבה מנצחת הכול?',
+    title: 'במה האהבה תלויה',
+    sub: 'ורגיליוס ושיר השירים אומרים שהאהבה מנצחת הכול. הפתגם האנגלי ומשורר סיני עונים שהעוני מגרש אותה. משנה אבות מכריעה בשאלה אחרת.',
+    lead: { idea: 'love' },
+    body: [
+      { p: `**ורגיליוס** Virgil כתב: "${say('lov-virgil')}". **שיר השירים**: "${say('lov-song')}". ברוסיה: "${say('lov-ru')}". וביפן, בעיני האוהב: "${say('lov-jp')}".` },
+      { p: `ובצד השני: "${say('lov-window')}", אומר הפתגם האנגלי. ו**יואן ג'ן** Yuan Zhen, משורר סיני, סביב **810**: "${say('lov-cn')}".` },
+      { p: `התלמוד מביא, במסכת סנהדרין, פתגם אחד שמחזיק בשני הצדדים: "${say('lov-bavli')}", ו"${say('lov-bavli2')}". אותה אהבה, ואותו זוג, בשני זמנים.` },
+      { pull: say('lov-avot'), cite: 'משנה אבות ה, טז' },
+      { insight: '==השאלה אינה אם האהבה חזקה, אלא במה היא תלויה.== אהבה שנשענת על תנאי נגמרת עם התנאי. אהבה שאינה תלויה בדבר עמידה גם בעוני.' },
+      { h: 'בעיר: שכונה שאוהבים אותה' },
+      { p: 'שכונה שאוהבים אותה עמידה גם במשבר. ==אהבה למקום שתלויה רק בנוחות נעלמת עם הנוחות==. מתכנן שבונה רק נוחות בונה אהבה תלויה בדבר. מי שבונה זיכרון, גינה וספסל, בונה אהבה שאינה תלויה.' },
+      { haiku: IDEA.love.haiku as [string, string, string], note: IDEA.love.haikuNote },
+    ],
+    post: IDEA.love.post,
+    notes: src(['lov-virgil', 'lov-song', 'lov-ru', 'lov-jp', 'lov-window', 'lov-cn', 'lov-bavli', 'lov-avot']),
+    related: [{ label: 'לדף "האהבה מנצחת הכול?"', page: 'daf', params: { i: 'love' } }],
   },
 ];

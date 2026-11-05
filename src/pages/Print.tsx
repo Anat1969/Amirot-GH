@@ -26,7 +26,7 @@ export default function Print({ params }: { params: Record<string, string> }) {
   );
 }
 
-function Sheet({ a, n }: { a: Art; n: number }) {
+export function Sheet({ a, n }: { a: Art; n: number }) {
   const [qr, setQr] = useState('');
   const url = `${LIVE}/#/article?a=${a.id}`;
   useEffect(() => { QRCode.toString(url, { type: 'svg', margin: 0, color: { dark: '#1a1a18', light: '#ffffff' } }).then(setQr).catch(() => setQr('')); }, [url]);

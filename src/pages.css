@@ -795,8 +795,10 @@ body:has(.page-home) { background: #11110f; }
 .page-home .topbar .brand img { filter: invert(1) hue-rotate(180deg); }
 .page-home .topbar .field { background: var(--hx-sheet); border-color: var(--hx-rule); color: var(--hx-paper); }
 
-.home-dark {
-  color: var(--hx-paper); direction: rtl;
+.home-dark { position: relative; color: var(--hx-paper); direction: rtl; display: block; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--hx-rule) transparent; }
+/* המסך הראשון ממלא בדיוק את גובה החלון. הדף החי הוא המסך השני, מתחתיו */
+.hx-screen {
+  display: grid; height: 100%;
   grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
   grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas: "purpose film" "ins ins";
@@ -845,7 +847,7 @@ body:has(.page-home) { background: #11110f; }
 @media (max-width: 1100px) { .hx-insights { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 961px) and (max-height: 800px) { .hx-lead, .hx-goal-s { display: none; } .hx-card { padding: 10px 12px; } .hx-line { font-size: 12.5px; } }
 @media (max-width: 960px) {
-  .home-dark { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: max-content; grid-template-areas: "purpose" "film" "ins"; }
+  .hx-screen { height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: max-content; grid-template-areas: "purpose" "film" "ins"; }
   .hx-entries { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
@@ -861,3 +863,49 @@ body:has(.page-home) { background: #11110f; }
   .hx-big { font-size: 24px; }
   .hx-line { font-size: 12px; line-height: 1.45; }
 }
+
+/* יצירות ככתבות: תשע כתבות A4 בדף אחד, מקובצות לפי ידע, הבנה ויישום */
+.creations-a4 { display: block; overflow-y: auto; background: #e9e8e4; max-width: none; padding: clamp(14px, 2vw, 32px) 12px 48px; }
+.ca-head, .ca-zone-h, .ca-acts { width: min(210mm, 100%); margin-inline: auto; }
+.ca-head { display: grid; gap: 6px; margin-bottom: 18px; }
+.ca-head h1 { font-family: var(--serif); font-size: clamp(30px, 3.4vw, 48px); line-height: 1.05; margin: 0; }
+.ca-head p { margin: 0; color: var(--ink-soft); }
+.ca-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.ca-zones .btn { text-align: center; text-decoration: none; color: var(--ink); }
+.ca-zone { display: grid; gap: 28px; margin-bottom: 40px; scroll-margin-top: 12px; }
+.ca-zone-h { display: flex; align-items: baseline; gap: 12px; border-bottom: 2.2pt solid var(--ink); padding-bottom: 6px; margin-block: 8px 0; font-size: 22px; }
+.ca-zone-h b { font-family: var(--serif); }
+.ca-zone-h span { font-size: 14px; font-weight: 400; color: var(--ink-mute); }
+.ca-item { display: grid; gap: 8px; justify-items: center; scroll-margin-top: 12px; }
+.ca-acts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ca-acts .btn { text-align: center; text-decoration: none; color: var(--ink); font-size: 13px; }
+.ca-acts .btn.primary { background: var(--ink); color: #fff; }
+.ca-sheet .a4 { zoom: var(--z, 1); }
+@media (max-width: 560px) { .ca-acts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ca-zone-h span { display: none; } }
+
+/* הדף החי בבית: גיליון נייר על רקע הדיו. משמאל הדף, מימין המחלוקת וכלל ההכרעה */
+.hx-live { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: clamp(18px, 2.4vw, 44px); align-items: center; min-height: 100%; padding-block: clamp(24px, 4vh, 56px); border-top: 1px solid var(--hx-rule); margin-top: clamp(14px, 2.2vh, 32px); }
+.hx-live-text { display: grid; gap: 14px; align-content: center; }
+.hx-live h2 { font-family: var(--serif); font-size: clamp(30px, min(3vw, 6vh), 56px); line-height: 1.05; margin: 0; color: var(--hx-paper); }
+.hx-live-ins { margin: 0; font-size: clamp(16px, 1.3vw, 21px); color: var(--hx-soft); animation: hx-rise .5s both; }
+.hx-live-ins strong { color: var(--hx-paper); }
+.hx-live-rule { display: grid; gap: 8px; }
+.hx-live-rule p { margin: 0; display: grid; gap: 2px; padding: 10px 14px; background: var(--hx-sheet); border-inline-start: 4px solid var(--c); font-size: 14px; color: var(--hx-soft); }
+.hx-live-rule p b { color: var(--c); font-size: 15px; }
+.hx-live-rule p strong { color: var(--hx-paper); }
+.hx-live-rule .t-a { --c: var(--hx-a); } .hx-live-rule .t-b { --c: var(--hx-b); }
+.hx-live .legend { color: var(--hx-mute); }
+.hx-live-ctl { display: flex; gap: 8px; align-items: center; }
+.hx-icon { border: 0; cursor: pointer; display: grid; place-items: center; width: 36px; height: 36px; background: var(--hx-sheet-2); color: var(--hx-paper); }
+.hx-icon:focus-visible { outline: 2px solid var(--hx-a); outline-offset: 2px; }
+.hx-live .hd-steps { justify-content: flex-start; flex-wrap: wrap; }
+.hx-live .step { background: var(--hx-rule); }
+.hx-live .step:hover { background: var(--hx-mute); }
+.hx-live .step.on { background: var(--hx-paper); }
+.hx-live .mini-daf { width: 100%; height: auto; max-height: calc(100dvh - 140px); flex: none; }
+@media (max-width: 960px) { .hx-live { grid-template-columns: minmax(0, 1fr); min-height: 0; } .hx-live .mini-daf { max-height: none; } }
+@media (max-width: 560px) { .hx-live { display: none; } } /* בטלפון הדף החי צר מדי לקריאה. הוא נמצא בלשונית "הדף" */
+.hx-down { border: 0; background: none; cursor: pointer; font: inherit; font-size: 13.5px; color: var(--hx-s); padding: 6px 0; }
+.hx-down:hover { color: var(--hx-paper); }
+.hx-down:focus-visible { outline: 2px solid var(--hx-a); outline-offset: 2px; }
+@media (max-width: 560px) { .hx-down { display: none; } }
