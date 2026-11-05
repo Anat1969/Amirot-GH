@@ -126,6 +126,13 @@
     - ואז `CREATIONS_JS=<AppOfApp-GH>/public/creations.js node <AppOfApp-GH>/tools/creations-render.cjs "http://localhost:4173/#/creations" public/creations.json public/creations`.
   - **לכל יצירה:** קובץ JPG לחדר בתערוכה, הדפסה A4 וכפתור העלאה ל-TAARUCHA.
 
+## סרטון הדגמה
+- `tools/video/script.json`: 11 סצנות. לכל סצנה קריינות (`say`), כתובית (`cap`), כתובת ופעולות דפדוף.
+- `node tools/video/make.cjs [פלט]` מול `vite preview`: קריינות בקול אברי (`he-IL-AvriNeural`, מהירות 1.2 = `+20%`). אורך הקריינות קובע את אורך כל סצנה, והצילום נעשה ב-CDP screencast ב-1920×1080.
+- `--preview`: בלי קול, עם תזמון משוער, לבדיקת הצילום.
+- **דרישה:** גישת רשת ל-`speech.platform.bing.com`. ב-03.11.2026 הייתה חסומה בסביבת הענן.
+- מספרים בקריינות כתובים במילים, ובכתובית בספרות.
+
 ## ניקוד
 **כל אמירה נושאת שדה `nikud`, ובממשק מוצג תמיד הנוסח המנוקד.** זה כלל עקביות: ניקוד לכולן, או לאף אחת.
 - **אמירה חדשה:** מעבירים אותה ב-Dicta Nakdan (`https://nakdan-5-3.loadbalancer.dicta.org.il/api`). למקרא, משנה ותלמוד ב-`genre: rabbinic`, ולשאר ב-`modern`.
