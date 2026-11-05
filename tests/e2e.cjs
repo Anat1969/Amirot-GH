@@ -21,14 +21,15 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // בית
   await go('/');
   ok(await p.locator('h1.home-h1').count() === 1, 'כותרת הבית');
-  { const r = await p.evaluate(() => [...document.querySelectorAll('.md-pic')].map(e => e.getBoundingClientRect()));
-    ok(r.length === 2 && Math.abs(r[0].width - r[1].width) < 1 && r[0].x > r[1].x && Math.abs(r[0].y - r[1].y) < 1 && Math.abs(r[0].height - r[1].height) < 1, 'בית: שתי התמונות באותו קו גובה, צד א מימין וצד ב משמאל, באותו רוחב'); }
   ok(await p.locator('ai-menu').count() === 1, 'כפתור לוגו יחיד');
-  ok(await p.locator('.map-card').count() === 5, 'מפת התוכן: 5 כרטיסים');
-  await p.locator('.step').nth(4).click(); await p.waitForTimeout(300);
-  ok((await p.locator('.md-q').textContent()) === 'מראה' || true, 'בחירת רעיון בדף החי');
-  await p.locator('.mini-daf').click(); await p.waitForTimeout(400);
-  ok(p.url().includes('#/daf?i='), 'לחיצה על הדף החי פותחת את הדף');
+  ok(await p.locator('.hx-entry').count() === 5, 'מפת התוכן: 5 כניסות');
+  ok(await p.locator('.hx-card').count() === 6, 'שש תובנות');
+  ok(await p.evaluate(() => getComputedStyle(document.querySelector('.app-shell')).backgroundColor) === 'rgb(17, 17, 15)', 'בית: דף כהה');
+  ok(await p.evaluate(() => { const v = document.querySelector('.hx-frame video'); return !!v && v.muted && v.loop; }), 'בית: סרטון מושתק בלולאה');
+  ok(await p.evaluate(() => fetch('./video/amirot.mp4', { method: 'HEAD' }).then(r => r.ok)), 'קובץ הסרטון קיים');
+  await p.locator('.hx-card').nth(2).click(); await p.waitForTimeout(400);
+  ok(p.url().includes('#/mirror?k=impostor'), 'כרטיס תובנה מוביל למקור');
+  await go('/');
 
   // ניווט בסרגל
   for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['כתבה', 'article'], ['בית', '/']]) {
