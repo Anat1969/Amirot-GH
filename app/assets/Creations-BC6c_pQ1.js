@@ -1,1 +1,0 @@
-import{j as a}from"./index-CVoBZFox.js";function n(){return a.jsx("main",{className:"app-main creations-page",children:a.jsx("app-creations",{src:"./creations.json",heading:"מה האמירות יוצרות"})})}export{n as default};
