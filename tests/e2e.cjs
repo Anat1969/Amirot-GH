@@ -233,6 +233,15 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await rp.goto(BASE + '#/daf?i=haste', { waitUntil: 'networkidle' });
   ok(await rp.locator('.gloss-item').count() === 13, 'הפחתת תנועה: הדף מוצג');
 
+  // הכתבות כקובץ פתוח למגזין "חוט": קובץ אחד, כתבה לכל כתבה שבדף הכתבות, וכל כתובת פותחת את הכתבה שלה
+  const feed = await (await p.request.get(BASE + 'articles.json')).json();
+  await go('/article');
+  const shown = await p.locator('.art-card').count();
+  ok(feed.articles.length === shown && shown > 0, `articles.json: ${feed.articles.length} כתבות, כמו בדף הכתבות (${shown})`);
+  ok(feed.articles.every((x) => x.id && x.title && x.sub && x.body.length && x.url.endsWith('#/article?a=' + x.id)), 'articles.json: לכל כתבה כותרת, גוף וכתובת ישירה');
+  await go('/article?a=' + feed.articles[feed.articles.length - 1].id);
+  ok((await p.locator('.feature h1').innerText()) === feed.articles[feed.articles.length - 1].title, 'articles.json: הכתובת הישירה פותחת את הכתבה הנכונה');
+
   ok(errs.length === 0, 'שגיאות JS: ' + errs.join(' | '));
   console.log(`\n${pass} עברו, ${fail} נכשלו`);
   await b.close();
