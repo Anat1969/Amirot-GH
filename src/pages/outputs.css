@@ -87,17 +87,6 @@
 .added-h { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500; }
 .added-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
 
-/* יצירה בלחיצה: התוצר מוצג מיד כלוח A4, ומעליו אישור */
-.forge-go { font-size: 15px; padding-inline: 18px; }
-.forge-preview { display: grid; gap: 10px; justify-items: center; padding: 12px; background: #e9e8e4; }
-.fp-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; max-width: 794px; }
-.fp-acts .btn { display: inline-flex; align-items: center; gap: 6px; }
-.fp-acts .btn.primary { background: var(--ink); color: #fff; }
-.fp-what { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 100%; font-size: 15px; flex-wrap: wrap; }
-.fp-acts .icon-btn { margin-inline-start: auto; }
-.fp-sheet { width: 100%; max-width: 794px; display: grid; justify-items: center; }
-.fp-sheet .a4 { zoom: var(--zp, 1); }
-
 /* לוח A4 של תוצר: אותה מערכת של לוח הכתבה, עם דיפטיכון נמוך יותר כדי לפנות מקום לגוף */
 .a4-out .a4-head h1 { font-size: 30pt; }
 .a4-out { grid-template-rows: auto auto minmax(0, 1fr) auto auto; }
@@ -115,34 +104,53 @@
 .a4-cert i.on { background: var(--ink); }
 .a4-q p { font-weight: 600; }
 
-/* הספרייה */
-.library { display: grid; gap: 16px; align-content: start; padding: 16px; }
-.lib-head { display: grid; gap: 6px; max-width: 1240px; width: 100%; margin: 0 auto; }
+/* מעבר מהתוצרים לספרייה, שהיא המקום האחד ליצירה */
+.out-to-lib { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: #fff; box-shadow: var(--shadow-1); color: var(--ink); text-decoration: none; border-inline-start: 3px solid var(--ink); }
+.out-to-lib > span { display: grid; gap: 2px; }
+.out-to-lib strong { font-family: var(--font-head, inherit); font-weight: 500; font-size: 16px; }
+
+/* הספרייה: יצירה למעלה, רשת למטה, ולוח פתוח בחלון מעל הדף */
+.library { display: grid; grid-auto-rows: max-content; gap: 14px; align-content: start; }
+.library > * { min-height: auto; }
+.lib-head, .lib-make, .lib-filter, .lib-grid, .lib-empty { max-width: 1240px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+.lib-head { display: grid; gap: 4px; }
 .lib-head h1 { margin: 0; font-size: clamp(24px, 2.4vw, 32px); font-weight: 500; }
 .lib-head p { margin: 0; color: var(--ink-soft); }
+.lib-make { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.lib-make-btn { display: grid; justify-items: start; gap: 4px; padding: 16px 18px; background: #fff; border: 0; box-shadow: var(--shadow-1); cursor: pointer; font: inherit; color: var(--ink); text-align: start; transition: box-shadow .15s, transform .15s, background .15s; }
+.lib-make-btn:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); background: var(--rule-soft); }
+.lib-make-btn:active { transform: translateY(0); }
+.lib-make-btn strong { font-family: var(--font-head, inherit); font-weight: 500; font-size: 17px; }
 .lib-filter { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lib-filter .label { margin-inline-end: 8px; }
 .lib-filter .chip { display: inline-flex; align-items: center; gap: 5px; min-width: 86px; justify-content: center; }
-.lib-new { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff; }
-.lib-big { display: grid; gap: 10px; justify-items: center; padding: 12px; background: #e9e8e4; max-width: 1240px; width: 100%; margin: 0 auto; box-sizing: border-box; }
-.lib-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; max-width: 794px; }
-.lib-acts .btn { display: inline-flex; align-items: center; gap: 6px; }
-.lib-acts .btn.primary { background: var(--ink); color: #fff; }
-.lib-pos { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; }
-.lib-sheet .a4 { zoom: var(--z, 1); }
-.lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 210px)); gap: 16px; max-width: 1240px; width: 100%; margin: 0 auto; }
+.lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 210px)); gap: 16px; }
 .lib-card { display: grid; gap: 4px; align-content: start; text-align: start; padding: 10px; background: #fff; border: 0; cursor: pointer; font: inherit; color: var(--ink); box-shadow: var(--shadow-1); transition: box-shadow .15s, transform .15s; }
 .lib-card:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
 .lib-card:active { transform: translateY(0); }
-.lib-card.on { outline: 2px solid var(--ink); }
 .lib-card strong { font-family: var(--font-head, inherit); font-weight: 500; font-size: 14px; line-height: 1.35; }
 .lib-thumb { display: block; width: 100%; aspect-ratio: 210 / 297; overflow: hidden; background: #fff; pointer-events: none; }
 .lib-thumb .a4 { zoom: .215; box-shadow: none; }
-.lib-empty { display: grid; gap: 8px; justify-items: start; max-width: 1240px; width: 100%; margin: 0 auto; padding: 18px; background: #fff; box-shadow: var(--shadow-1); }
-.lib-empty p { margin: 0; }
-.lib-empty .btn { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff; }
+.lib-empty { margin: 0 auto; padding: 18px; background: #fff; box-shadow: var(--shadow-1); }
+.lib-modal { position: fixed; inset: 0; z-index: 60; background: rgba(26, 26, 24, .55); display: grid; justify-items: center; }
+.lib-modal-in { width: min(100%, 860px); height: 100%; overflow: auto; background: #e9e8e4; display: grid; grid-auto-rows: max-content; justify-items: center; gap: 12px; padding: 0 12px 24px; box-sizing: border-box; }
+.lib-acts { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: calc(100% + 24px); margin: 0 -12px; padding: 12px; background: #e9e8e4; box-shadow: 0 6px 12px -10px rgba(0,0,0,.4); box-sizing: border-box; }
+.lib-acts .btn { display: inline-flex; align-items: center; gap: 6px; }
+.lib-acts .btn.primary { background: var(--ink); color: #fff; }
+.lib-what { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 100%; flex-wrap: wrap; font-size: 15px; padding-inline-end: 40px; }
+.lib-x { position: absolute; inset-inline-end: 12px; top: 10px; }
+.lib-pos { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; }
+.lib-sheet .a4 { zoom: var(--z, 1); }
+@media (max-width: 760px) {
+  .lib-make { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lib-thumb .a4 { zoom: .19; }
+}
 @media print {
+  .page-library .lib-head, .page-library .lib-make, .page-library .lib-filter, .page-library .lib-grid, .page-library .lib-empty { display: none !important; }
   .page-library .library { padding: 0; display: block; }
-  .page-library .lib-big { padding: 0; background: none; }
+  .page-library .lib-modal { position: static; background: none; display: block; }
+  .page-library .lib-modal-in { width: auto; height: auto; overflow: visible; background: none; padding: 0; display: block; }
   .page-library .lib-sheet .a4 { zoom: 1; box-shadow: none; }
   .page-library .app-shell, .page-library { height: auto; }
 }
