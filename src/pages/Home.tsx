@@ -50,7 +50,7 @@ export default function Home() {
       <section className="hx-purpose">
         <span className="hx-kicker">אטלס של פתגמים וציטוטים · <bdi className="num">{SAYINGS.length}</bdi> אמירות · <bdi className="num">{st.cultures.length}</bdi> תרבויות</span>
         <h1 className="home-h1">כל תרבות אומרת משהו.<br /><span className="hx-b">ואת ההפך.</span></h1>
-        <p className="hx-lead">"החיפזון מן השטן", וגם "הכה בברזל בעודו חם".<br />שתי אמיתות, ואין הוראות שימוש.</p>
+        <p className="hx-lead"><Rich>{'"החיפזון מן השטן", וגם "הכה בברזל בעודו חם".'}</Rich><br />שתי אמיתות, ואין הוראות שימוש.</p>
         <div className="hx-goal">
           <span className="hx-goal-k">המטרה</span>
           <p><strong>לא לבחור צד.</strong><br /><mark>לדעת מתי כל צד נכון.</mark></p>

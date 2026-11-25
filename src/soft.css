@@ -1,0 +1,116 @@
+/* ───── שפה רכה (25.11.2026, בקשה של ענת) ─────
+   השכבה הזו נטענת אחרונה ודורסת את styles.css ואת pages.css. למראה הקודם: מוחקים את ה-import שלה ב-main.tsx.
+   הקוד של השפה, כדי שכל סימן יאמר דבר אחד:
+   1. סריף מנוקד (Frank Ruhl Libre)    = אמירה. קול התרבות.
+   2. Plex, משקל 500                  = כותרת, פרמטר ותובנה. קול הניתוח.
+   3. Assistant, צר ודק (300)          = גוף והסבר. קול הממשק.
+   4. Chivo                            = מספר, ודבר יוצא דופן.
+   5. השחרה (#1a1a18 על טקסט אפור)     = המילה החשובה במשפט.
+   6. מרקר צהוב רך                     = התובנה.
+   7. רקע אפור כהה (אפור 1) וטקסט לבן    = נבחר ופעיל.
+   8. רקע בהיר וצל                      = כפתור. טקסט בלי רקע אינו לחיץ.
+   9. צבע                              = רק שוני: צד א, צד ב, הכרעה ומתחזה.
+*/
+:root {
+  /* חמישה אפורים, שחור ולבן. כהים לטקסט, בהירים לרקעים */
+  --black: #1a1a18;
+  --g1: #33332f; /* כותרות, ונבחר */
+  --g2: #5b5a55; /* גוף הטקסט */
+  --g3: #8e8d87; /* משני: מקור, שנה, תווית */
+  --g4: #e6e5e0; /* קו, ורקע כפתור בריחוף */
+  --g5: #f5f4f1; /* רקע בהיר: כפתור, לוח, איור */
+  --white: #ffffff;
+
+  --ink: var(--g1);
+  --ink-soft: var(--g2);
+  --ink-mute: var(--g3);
+  --rule: var(--g4);
+  --rule-soft: var(--g5);
+  --paper: var(--white);
+  --sheet: var(--white);
+
+  /* הצבעים נשארים, ברוויה מעט נמוכה יותר */
+  --side-a: #34548a;
+  --side-a-wash: #eef2f8;
+  --side-b: #b0463c;
+  --side-b-wash: #fbf0ee;
+  --side-s: #2f8560;
+  --side-s-wash: #eaf5ef;
+  --impostor: #c08530;
+  --impostor-wash: #fdf5e8;
+  --twin: var(--g1);
+  --marker: #ffec8f;
+
+  --shadow-1: 0 1px 2px rgba(51, 51, 47, .06), 0 2px 8px rgba(51, 51, 47, .05);
+  --shadow-2: 0 2px 4px rgba(51, 51, 47, .07), 0 10px 26px rgba(51, 51, 47, .09);
+
+  --font: "Assistant", "IBM Plex Sans Hebrew", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-head: "IBM Plex Sans Hebrew", "Assistant", system-ui, sans-serif;
+  --mono: "Chivo", "Assistant", system-ui, sans-serif;
+  --num: "Chivo", "Assistant", system-ui, sans-serif;
+}
+
+/* 3. גוף: צר ודק */
+html, body { color: var(--g2); font-family: var(--font); font-weight: 300; }
+p, li, dd { font-weight: 300; }
+.src, .label, .orig, .en, small { font-weight: 400; }
+
+/* 2. כותרות, פרמטרים ותובנות: Plex */
+h1, h2, h3, h4, .ov-title, .rs-title, .ft, .pt-head, .ev-title, .insight-line, .wr-hd b, .rs-ax-t b, .rs-bl, .vb-name, .brand, .tab[aria-current="page"], .panel-hd h2, .zone-hd h2 {
+  font-family: var(--font-head); font-weight: 500;
+}
+.app-shell:not(.page-home) :is(h1, h2, h3, h4) { color: var(--g1); }
+h1, .ov-title, .rs-title { font-weight: 400; letter-spacing: -0.015em; }
+
+/* 5. השחרה: המילה החשובה */
+strong { font-weight: 600; }
+.app-shell:not(.page-home) strong { color: var(--black); }
+.app-shell:not(.page-home) :is(.chip[aria-pressed="true"], .world-row.on, .rs-axis.on, .press[aria-pressed="true"]) :is(strong, h1, h2, h3, h4) { color: inherit; }
+
+/* 6. מרקר: התובנה */
+mark.insight { background: linear-gradient(transparent 52%, var(--marker) 52%, var(--marker) 94%, transparent 94%); font-family: var(--font-head); font-weight: 500; }
+.app-shell:not(.page-home) mark.insight { color: var(--g1); }
+
+/* 4. מספר ויוצא דופן: Chivo */
+.num, .rs-n, .rs-ln, .fn, .zone-n, .rs-bv, .km { font-family: var(--num); font-variant-numeric: tabular-nums lining-nums; }
+.num { font-weight: 500; }
+.label { font-family: var(--font); font-weight: 400; letter-spacing: .02em; color: var(--g3); }
+
+/* 1. אמירה: סריף מנוקד */
+.say, .q-say { font-family: "Frank Ruhl Libre", serif; font-weight: 500; }
+.q-say { font-size: 1.04em; }
+
+/* 7–8. כפתורים: רקע בהיר וצל, תמיד. הנבחר באפור כהה */
+.chip, .press, .linkish, .rs-axis, .world-row, .cc-btn.tile {
+  box-shadow: var(--shadow-1);
+}
+.chip { background: var(--g5); border: 0; color: var(--g2); font-weight: 400; }
+.chip:hover { background: var(--g4); color: var(--g1); box-shadow: var(--shadow-2); }
+.chip[aria-pressed="true"], .press[aria-pressed="true"], .world-row.on, .rs-axis.on {
+  background: var(--g1); color: var(--white); border-color: var(--g1);
+}
+.press { background: var(--white); border-color: var(--g4); color: var(--g2); }
+.press:hover { background: var(--g5); color: var(--g1); }
+.linkish { color: var(--g1); border-color: var(--g4); background: var(--g5); font-weight: 400; }
+.linkish:hover { background: var(--g4); }
+.world-row, .rs-axis { border-color: var(--g4); }
+
+/* מסגרות: קו בהיר, צל עדין */
+.panel, .card { border-color: var(--g4); }
+.panel-hd { border-bottom-color: var(--g5); }
+.topbar { border-bottom-color: var(--g4); }
+.tab { color: var(--g3); font-weight: 400; display: inline-flex; align-items: center; gap: 6px; }
+.tab:hover { color: var(--g1); }
+.tab[aria-current="page"] { border-bottom-color: var(--g1); }
+.tab svg { opacity: .75; }
+.tab[aria-current="page"] svg { opacity: 1; }
+.field { border-color: var(--g4); background: var(--g5); font-weight: 300; }
+.field:focus-visible { background: var(--white); }
+
+/* מספרים כהים במשבצות, רכים יותר */
+.zone-n, .fn, .rs-ln { background: var(--g1); }
+
+/* דף הבית נשאר כריכה כהה, כפי שענת ביקשה ב-05.11: הצבעים כאן מוגבלים ל-:not(.page-home) */
+
+/* הייקו ושאלת בדיקה אינם אמירות: הם בגופן של קול הניתוח, כדי שהסריף המנוקד יישאר שמור לאמירה */
+.haiku .say, .check .say { font-family: var(--font-head); font-weight: 400; }
