@@ -67,7 +67,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await go('/open');
 
   // ניווט בסרגל
-  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['מחקר', 'research'], ['כתבה', 'article'], ['פתיחה', 'open']]) {
+  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['מחקר', 'research'], ['כתבה', 'article'], ['ספרייה', 'library'], ['פתיחה', 'open']]) {
     await p.locator('.tab', { hasText: t }).click(); await p.waitForTimeout(500);
     ok(p.url().includes(h), 'לשונית ' + t);
     ok(await p.locator(`.tab[aria-current="page"]`).textContent() === t, 'לשונית מסומנת ' + t);
@@ -264,7 +264,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(await p.locator('.rs-find .q-say').count() >= 2, 'ציטוט של אמירה בתוך טקסט מקבל ניקוד וסריף');
   const code = await p.evaluate(() => ({ body: getComputedStyle(document.body).fontFamily, num: getComputedStyle(document.querySelector('.num')).fontFamily, h1: getComputedStyle(document.querySelector('h1')).fontFamily, chip: getComputedStyle(document.querySelector('.rs-axis')).boxShadow }));
   ok(code.body.includes('Assistant') && code.num.includes('Chivo') && code.h1.includes('Plex') && code.chip !== 'none', 'קוד הגופנים והכפתורים ' + JSON.stringify(code));
-  ok(await p.locator('.tab svg').count() === 8, 'אייקון לכל לשונית');
+  ok(await p.locator('.tab svg').count() === 9, 'אייקון לכל לשונית');
 
   // דפדוף: אורכי, רוחבי ואוטומטי כל 4 שניות (25.11.2026)
   for (const h of ['/daf?i=haste', '/mirror', '/atlas', '/trends', '/research', '/article', '/creations']) {
@@ -305,21 +305,30 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.locator('.out-doc .ref').first().click(); await p.waitForTimeout(300);
   ok(/#\/(daf|research|article)/.test(p.url()), 'מקור בתוצר פותח את המקום שלו באפליקציה');
 
-  // סדנה: תוצר חדש נוצר בתוך האפליקציה, נערך, ומתווסף לה (ענן מדומה)
+  // סדנה: לחיצה אחת יוצרת תוצר כלוח A4 ערוך, אישור שומר אותו בספרייה (ענן מדומה). אין שדות לכתוב
+  await go('/library');
+  ok(await p.locator('.lib-empty').count() === 1, 'ספרייה: מצב ריק מוסבר, עם כפתור יצירה');
   await go('/creations?v=outputs');
   await p.locator('[data-forge-kind="paper"]').click();
   await p.locator('[data-forge-idea]').selectOption('truth');
-  await p.locator('[data-forge-go]').click(); await p.waitForTimeout(300);
-  const dr = await p.evaluate(() => { const d = document.querySelector('[data-draft]'); const bl = [...d.querySelectorAll('.fe-blk')]; return { blocks: bl.length, factsRef: bl.filter((b) => b.classList.contains('blk-fact')).every((b) => b.querySelector('.ref')), title: d.querySelector('.fe-title').value }; });
-  ok(dr.blocks >= 5 && dr.factsRef && dr.title.includes('אמת'), 'סדנה: טיוטת מאמר מהמאגר, וכל עובדה עם מקור ' + JSON.stringify(dr));
-  await p.locator('.fe-title').fill('מאמר בדיקה: אמת או שלום');
-  await p.locator('[data-save]').click(); await p.waitForTimeout(500);
-  ok(/o=u-paper-test/.test(decodeURIComponent(p.url())) && await p.locator('.added [data-card^="u-paper"]').count() === 1 && (await p.locator('.out-doc .out-title').textContent()).includes('מאמר בדיקה'), 'סדנה: הוספה לאפליקציה, והתוצר מופיע ונפתח');
-  await p.locator('[data-forge="essay"]').click(); await p.waitForTimeout(300);
-  ok(await p.locator('[data-draft].out-essay').count() === 1, 'סדנה: להפוך למסה בתוך האפליקציה');
-  await p.locator('[data-save]').click(); await p.waitForTimeout(500);
+  await p.locator('[data-forge-go]').click(); await p.waitForTimeout(400);
+  await p.waitForSelector('[data-draft] .a4[data-ready="1"]', { timeout: 8000 }).catch(() => {});
+  const dr = await p.evaluate(() => { const d = document.querySelector('[data-draft]'); const a4 = d.querySelector('.a4'); const body = a4.querySelector('.a4-body'); const r = a4.getBoundingClientRect(); return { inputs: d.querySelectorAll('input, textarea').length, title: a4.querySelector('h1').textContent, ratio: Math.round(r.height / r.width * 100) / 100, over: body.scrollHeight > body.clientHeight + 1, notes: a4.querySelectorAll('.a4-notes p').length, pics: a4.querySelectorAll('.a4-pic').length, ready: a4.dataset.ready }; });
+  ok(dr.inputs === 0 && dr.title.includes('אמת') && dr.ratio === 1.41 && !dr.over && dr.notes >= 2 && dr.pics === 2 && dr.ready === '1', 'סדנה: מאמר בלחיצה, כלוח A4 בלי גלישה ובלי שדות לכתוב ' + JSON.stringify(dr));
+  const t1 = await p.locator('[data-draft] .a4-body').textContent();
+  await p.locator('[data-another]').click(); await p.waitForTimeout(300);
+  ok((await p.locator('[data-draft] .a4-body').textContent()) !== t1, 'סדנה: "גרסה אחרת" מביאה אמירות אחרות');
+  await p.locator('[data-save]').click(); await p.waitForTimeout(800);
+  ok(/#\/library\?o=u-paper-test0/.test(decodeURIComponent(p.url())) && await p.locator('[data-open="u-paper-test0"] .a4').count() === 1 && await p.locator('.lib-grid [data-lib="u-paper-test0"]').count() === 1, 'סדנה: אישור שומר בספרייה, והלוח נפתח בה ' + p.url().split('#')[1]);
+  await p.locator('[data-next-kind="essay"]').click(); await p.waitForTimeout(900);
+  ok(await p.locator('[data-draft].out-essay .a4').count() === 1, 'ספרייה: להפוך למסה, בלחיצה');
+  await p.locator('[data-save]').click(); await p.waitForTimeout(800);
   const ess = cloudRows[0];
   ok(ess && ess.kind === 'essay' && ess.derived_from === 'u-paper-test0' && ess.idea === 'truth', 'סדנה: המסה נשמרה עם "התפתח מ" והמחלוקת ' + JSON.stringify(ess && { k: ess.kind, d: ess.derived_from }));
+  ok(await p.locator('.lib-grid .lib-card').count() === 2, 'ספרייה: שני הלוחות ברשימה');
+  await go('/creations?v=outputs&o=u-paper-test0');
+  ok(await p.locator('[data-to-library]').count() === 1, 'תוצר שנוסף: קישור ללוח בספרייה');
+  await go('/creations?v=outputs&o=u-essay-test1');
   ok(await p.locator('.out-from button').count() === 1, 'סדנה: בתוצר שנוסף רואים ממה התפתח');
   const ap = await b.newPage({ viewport: { width: 1440, height: 900 } });
   await ap.route('**/appofapp-gh.vercel.app/**', SHARED);

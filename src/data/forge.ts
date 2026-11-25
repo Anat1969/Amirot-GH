@@ -2,7 +2,7 @@
 // כל עובדה היא אמירה, או ספירה מהמחלוקת, עם המקור שלה. מה שלא נגזר מהמאגר מסומן פרשנות, השערה או דמיון.
 // בלי בינה מלאכותית ובלי תשלום: התבנית היא מנגנון החשיבה של הסוג (הסקיל anat-outputs), והתוכן הוא הנתונים.
 // אחר כך עורכים בדף, ו"הוספה לאפליקציה" שומרת בענן (cloud.ts).
-import { BY_IDEA, IDEA, CULTURE, WORLDS, VALUES, type Saying } from '../engine';
+import { BY_IDEA, IDEA, IDEAS, CULTURE, WORLDS, VALUES, type Saying } from '../engine';
 import { yearLabel } from '../engine';
 import type { Kind, Output, Block } from './outputs';
 
@@ -12,11 +12,14 @@ const plain = (t: string) => t.replace(/\*\*|==/g, '');
 const pick = <T,>(xs: T[], n: number) => xs.slice(0, n);
 
 /** נתוני המחלוקת שכל סוג נשען עליהם */
+// גרסה (seed): מסובבת את סדר האמירות, כך שכל לחיצה על "גרסה אחרת" מביאה אמירות אחרות מאותה מחלוקת
+const rot = <T,>(xs: T[], k: number) => (xs.length ? xs.map((_, i) => xs[(i + k) % xs.length]) : xs);
+let SEED = 0;
 function material(ideaId: string) {
   const idea = IDEA[ideaId];
-  const ss = BY_IDEA[ideaId] || [];
+  const ss = rot(BY_IDEA[ideaId] || [], SEED);
   const A = ss.filter((s) => s.side === 'a'), B = ss.filter((s) => s.side === 'b'), S = ss.filter((s) => s.side === 's');
-  const dated = ss.filter((s) => s.year != null).sort((x, y) => (x.year as number) - (y.year as number));
+  const dated = (BY_IDEA[ideaId] || []).filter((s) => s.year != null).sort((x, y) => (x.year as number) - (y.year as number));
   const cultures = new Set(ss.map((s) => s.culture));
   // תרבות שאומרת את שני הצדדים: הסתירה הפנימית
   const both = [...cultures].find((c) => A.some((s) => s.culture === c) && B.some((s) => s.culture === c));
@@ -27,7 +30,7 @@ function material(ideaId: string) {
 function story(ideaId: string): Omit<Output, 'id'> {
   const { idea, A, B, dated } = material(ideaId);
   const first = dated[0] || A[0] || B[0];
-  const chapters = dated.slice(1, 4);
+  const chapters = rot(dated.slice(1), SEED).slice(0, 3).sort((x, y) => (x.year as number) - (y.year as number));
   const opp = (first.side === 'a' ? B : A).find((s) => s.id !== first.id);
   const blocks: Block[] = [
     { h: 'הרגע', level: 'fact', text: `${who(first)}: ${say(first)}. המקור: ${first.src}.`, refs: [first.id] },
@@ -111,7 +114,12 @@ function creation(ideaId: string): Omit<Output, 'id'> {
 const MAKERS: Record<Kind, (idea: string) => Omit<Output, 'id'>> = { story, paper, essay, creation };
 
 /** טיוטה מלאה מהמאגר. כשהיא ממשיכה תוצר קודם, היא שומרת את הקשר אליו ואת המחלוקת שלו */
-export function forge(kind: Kind, ideaId: string, from?: Output): Output {
+export function forge(kind: Kind, ideaId: string, from?: Output, seed = 0): Output {
+  SEED = seed;
   const o = MAKERS[kind](ideaId);
+  SEED = 0;
   return { ...o, id: 'draft', derivedFrom: from?.id ?? null, ...(from ? { lead: `${o.lead} התפתח מ"${from.title}".` } : {}) };
 }
+
+/** מחלוקת אקראית, לכפתור "הפתעה" */
+export const randomIdea = (not?: string) => { const xs = IDEAS.filter((i) => i.id !== not); return xs[Math.floor(Math.random() * xs.length)].id; };
