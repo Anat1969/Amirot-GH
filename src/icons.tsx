@@ -37,9 +37,12 @@ const P: Record<string, string> = {
   bars: 'M4 20V10M10 20V4M16 20v-7M3 20h18',
   link: 'M10 14l4-4M8 11l-2 2a3 3 0 004 4l2-2M16 13l2-2a3 3 0 00-4-4l-2 2',
   quote: 'M5 11h4v6H5zM5 11c0-3 1-5 4-6M15 11h4v6h-4zM15 11c0-3 1-5 4-6',
+  all: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
   // תפעול
   prev: 'M9 6l6 6-6 6',
   next: 'M15 6l-6 6 6 6',
+  prev2: 'M6 6l6 6-6 6M12 6l6 6-6 6',
+  next2: 'M18 6l-6 6 6 6M12 6l-6 6 6 6',
   x: 'M6 6l12 12M18 6L6 18',
   play: 'M8 5l11 7-11 7z',
   pause: 'M8 5v14M16 5v14',

@@ -1,11 +1,13 @@
 // מראה: ארבע דרכים שבהן שתי אמירות קשורות. שני צירים: דמיון במילים ודמיון במשמעות.
 // שלוש רמות בתוך הדף: סוג הקשר (ימין) ← רשימת הזוגות (מרכז) ← זוג אחד עם פרשנות (שמאל).
 import { useMemo, useState } from 'react';
-import { PAIRS, KINDS, CULTURE, IDEA, GROUPS, GROUP_OF, VALUES, LANGS, langOf, km, yearGap, fmt, where, matcher, langCulture, type Kind, type Pair } from '../engine';
+import { PAIRS, KINDS, CULTURE, IDEA, GROUPS, GROUP_OF, GROUP_ICON, VALUES, LANGS, langOf, km, yearGap, fmt, where, matcher, langCulture, type Kind, type Pair } from '../engine';
 import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
 import Flag, { CultureName } from '../components/Flag';
+import Flip from '../components/Flip';
+import { Icon } from '../icons';
 
 const ORDER: Kind[] = ['twin', 'cousin', 'impostor', 'rival'];
 const pid = (p: Pair) => p.a.id + '~' + p.b.id;
@@ -29,6 +31,8 @@ export default function Mirror({ params }: { params: Record<string, string> }) {
     return PAIRS.find((p) => (p.a.id === a && p.b.id === b) || (p.a.id === b && p.b.id === a)) || null;
   }, [params.p, list]);
   const set = (patch: Record<string, string | undefined>) => go('mirror', { k: params.k, x: params.x, g: params.g, p: params.p, ...patch }, true);
+  // דפדוף: קטגוריה = סוג הקשר, רשומה = זוג. מהרחוק לקרוב, כמו ברשימה
+  const byKind = useMemo(() => ORDER.map((k) => ({ id: k, he: KINDS[k].he, items: base.filter((p) => p.kind === k && (!grp || GROUP_OF[p.a.idea] === grp || GROUP_OF[p.b.idea] === grp) && (!m || m(p.a) || m(p.b))).sort((x, y) => km(y.a, y.b) - km(x.a, x.b)).slice(0, 200).map((p) => k + '|' + pid(p)) })), [base, grp, m]);
   const lc = useMemo(langCulture, []);
   const sameWorldRivals = base.filter((p) => p.kind === 'rival' && CULTURE[p.a.culture].world === CULTURE[p.b.culture].world).length;
   const crossTwins = PAIRS.filter((p) => p.kind === 'twin' && langOf(p.a) !== langOf(p.b)).length;
@@ -62,7 +66,9 @@ export default function Mirror({ params }: { params: Record<string, string> }) {
           <div className="scope" role="group" aria-label="תחום הזוגות">
             <span className="label">אילו זוגות</span>
             <div className="chips">
-              {([['cross', 'בין תרבויות'], ['same', 'בתוך אותה תרבות'], ['all', 'הכול']] as const).map(([k, t]) => (
+              <button className="chip chip-all" aria-pressed={scope === 'all'} onClick={() => set({ x: 'all', p: undefined })}><Icon name="all" size={13} />הכול</button>
+              <span className="chips-sep" aria-hidden="true" />
+              {([['cross', 'בין תרבויות'], ['same', 'בתוך אותה תרבות']] as const).map(([k, t]) => (
                 <button key={k} className="chip" aria-pressed={scope === k} onClick={() => set({ x: k === 'cross' ? undefined : k, p: undefined })}>{t}</button>
               ))}
             </div>
@@ -81,10 +87,12 @@ export default function Mirror({ params }: { params: Record<string, string> }) {
           <span className="label">2 · הזוגות</span>
           <h2><bdi className="num">{fmt(list.length)}</bdi> זוגות מסוג {KINDS[kind].he}</h2>
           <span className="src">מהרחוק לקרוב</span>
+          {sel && <Flip cats={byKind} cur={sel.kind + '|' + pid(sel)} onGo={(x) => { const [k, p] = x.split('|'); set({ k, p }); }} noun="זוג" catNoun="סוג הקשר" />}
         </div>
         <div className="chips grp-pick" role="group" aria-label="משפחת נושאים">
-          <button className="chip" aria-pressed={!grp} onClick={() => set({ g: undefined, p: undefined })}>הכול</button>
-          {GROUPS.map((g) => <button key={g.id} className="chip" aria-pressed={grp === g.id} onClick={() => set({ g: grp === g.id ? undefined : g.id, p: undefined })}>{g.he}</button>)}
+          <button className="chip chip-all" aria-pressed={!grp} onClick={() => set({ g: undefined, p: undefined })}><Icon name="all" size={13} />הכול</button>
+          <span className="chips-sep" aria-hidden="true" />
+          {GROUPS.map((g) => <button key={g.id} className="chip" aria-pressed={grp === g.id} onClick={() => set({ g: grp === g.id ? undefined : g.id, p: undefined })}><Icon name={GROUP_ICON[g.id]} size={14} />{g.he}</button>)}
         </div>
         <div className="scroll-in pair-list">
           {list.slice(0, more).map(({ p, d }) => (

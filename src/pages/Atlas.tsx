@@ -12,6 +12,7 @@ import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
 import { Icon } from '../icons';
 import Flag from '../components/Flag';
+import Flip from '../components/Flip';
 
 const REG_HE: Record<string, string> = { 'מזרח תיכון': 'המזרח התיכון' };
 const rh = (r: string) => REG_HE[r] || r;
@@ -67,8 +68,9 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
         <div className="panel-bd scroll-in lines-lg">
           <span className="label">רעיון</span>
           <div className="chips vchips" role="group" aria-label="בחירת רעיון">
-            <button className="chip" aria-pressed={!idea} onClick={() => set({ i: undefined })}>הכול</button>
-            {IDEAS.map((i) => <button key={i.id} className="chip" aria-pressed={idea?.id === i.id} onClick={() => set({ i: idea?.id === i.id ? undefined : i.id })}>{i.chip}</button>)}
+            <button className="chip chip-all" aria-pressed={!idea} onClick={() => set({ i: undefined })}><Icon name="all" size={13} />הכול</button>
+            <span className="chips-sep" aria-hidden="true" />
+            {IDEAS.map((i) => <button key={i.id} className="chip" aria-pressed={idea?.id === i.id} onClick={() => set({ i: idea?.id === i.id ? undefined : i.id })}><Icon name={i.motif} size={14} />{i.chip}</button>)}
           </div>
           <span className="label">תקופה</span>
           <div className="range">
@@ -107,6 +109,7 @@ export default function Atlas({ params }: { params: Record<string, string> }) {
             {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((k) => <button key={k} className="chip" aria-pressed={sortBy === k} onClick={() => set({ o: k === 'count' ? undefined : k })}>{SORTS[k].replace('לפי ', '')}</button>)}
           </div>
         </div>
+        <Flip cats={WORLD_ORDER.map((w) => ({ id: w, he: WORLDS[w].he, items: present.filter((c) => c.world === w).sort((a, b) => byCulture[b.id].n - byCulture[a.id].n).map((c) => c.id) })).filter((c) => c.items.length)} cur={cult || ''} onGo={(c) => set({ c })} noun="תרבות" catNoun="העולם" className="fl-in" />
         <div className="panel-bd scroll-in">
           {(() => {
             let last = '';

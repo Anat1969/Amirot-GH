@@ -10,6 +10,9 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
+  // הדפדוף האוטומטי עצור בבדיקות, כדי שהעמוד לא יתחלף באמצע בדיקה. בדיקה נפרדת למטה מפעילה אותו
+  const noFlip = () => { try { localStorage.setItem('amirot.flip', '0'); } catch {} };
+  await ctx.addInitScript(noFlip);
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
@@ -241,8 +244,33 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(code.body.includes('Assistant') && code.num.includes('Chivo') && code.h1.includes('Plex') && code.chip !== 'none', 'קוד הגופנים והכפתורים ' + JSON.stringify(code));
   ok(await p.locator('.tab svg').count() === 8, 'אייקון לכל לשונית');
 
+  // דפדוף: אורכי, רוחבי ואוטומטי כל 4 שניות (25.11.2026)
+  for (const h of ['/daf?i=haste', '/mirror', '/atlas', '/trends', '/research', '/article', '/creations']) {
+    await go(h);
+    ok(await p.locator('.flip').count() >= 1, 'רכיב דפדוף ' + h);
+  }
+  await go('/daf?i=haste');
+  await p.locator('.flip button[aria-label="הרעיון הבא"]').click(); await p.waitForTimeout(200);
+  ok(p.url().includes('i=together') === false && !p.url().includes('i=haste'), 'דפדוף אורכי: הרעיון הבא');
+  await go('/daf?i=haste');
+  await p.locator('.flip button[aria-label="המשפחה הבאה"]').click(); await p.waitForTimeout(200);
+  ok(p.url().includes('i=together'), 'דפדוף רוחבי: המשפחה הבאה מתחילה ברעיון הראשון שלה');
+  await go('/mirror');
+  ok(await p.evaluate(() => { const a = document.querySelector('.grp-pick .chip-all'); return !!a && a.nextElementSibling?.classList.contains('chips-sep'); }), '"הכול" כפתור נפרד, עם מפריד');
+  for (const [h, g] of [['/article', 'article'], ['/creations', 'creation'], ['/research', 'essay']]) {
+    await go(h);
+    ok(await p.locator(`.genre.g-${g}`).count() === 1 && await p.locator(`.genre.g-${g} .gn-o`).count() === 2, 'פס סוגה ' + g);
+  }
+  const ap = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  await ap.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
+  await ap.addInitScript(() => { try { localStorage.setItem('amirot.flip', '1'); } catch {} });
+  await ap.goto(BASE + '#/daf?i=haste', { waitUntil: 'networkidle' }); await ap.waitForTimeout(4800);
+  ok(!ap.url().includes('i=haste'), 'דפדוף אוטומטי אחרי 4 שניות: ' + ap.url().split('#')[1]);
+  await ap.close();
+
   // נייד: בלי גלילה אופקית בשום דף
   const m = await b.newPage({ viewport: { width: 390, height: 844 } });
+  await m.addInitScript(noFlip);
   await m.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
   await m.route('**/fonts.googleapis.com/**', (r) => r.abort());
   for (const h of ['/', '/daf?i=risk', '/mirror', '/atlas', '/trends', '/research', '/article']) {
@@ -255,6 +283,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
 
   // הפחתת תנועה
   const r = await b.newContext({ reducedMotion: 'reduce' });
+  await r.addInitScript(noFlip);
   const rp = await r.newPage();
   await rp.route('**/appofapp-gh.vercel.app/**', (x) => x.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
   await rp.goto(BASE + '#/daf?i=haste', { waitUntil: 'networkidle' });

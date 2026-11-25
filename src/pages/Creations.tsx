@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ARTICLES, ZONES } from '../data/articles';
 import { href } from '../route';
 import { Sheet, pdfName } from './Print';
+import GenreBand from '../components/GenreBand';
+import Flip from '../components/Flip';
 
 const TAARUCHA = 'https://taarucha.vercel.app';
 const JSON_URL = 'https://amirot-gh.vercel.app/creations.json';
@@ -23,6 +25,7 @@ export default function Creations() {
   // הלוח נשאר בגודל A4 אמיתי, ובמסך צר הוא מוקטן כולו (zoom), כדי שהעימוד לא ישתנה
   const main = useRef<HTMLElement>(null);
   const [z, setZ] = useState(1);
+  const [at, setAt] = useState(ARTICLES[0].id);
   useEffect(() => {
     const el = main.current; if (!el) return;
     const ro = new ResizeObserver(() => setZ(Math.min(1, (el.clientWidth - 24) / 794)));
@@ -41,6 +44,8 @@ export default function Creations() {
         <span className="label">יצירות · <bdi className="num">{ARTICLES.length}</bdi> כתבות · כל כתבה עמוד A4 אחד</span>
         <h1>מה האמירות יוצרות</h1>
         <p>כל כתבה מוכנה להדפסה, לתלייה ולחדר בתערוכה.</p>
+        <GenreBand id="creation" />
+        <Flip cats={ZONES.map((zz) => ({ id: zz, he: zz, items: ARTICLES.filter((x) => x.zone === zz).map((x) => x.id) }))} cur={at} onGo={(id) => { setAt(id); jump(`ca-a-${id}`); }} noun="יצירה" catNoun="השלב" />
         <nav className="ca-zones" aria-label="קפיצה לשלב">
           {ZONES.map((z) => <a key={z} className="press btn" href={`#ca-${z}`} onClick={(e) => { e.preventDefault(); jump(`ca-${z}`); }}>{z}</a>)}
         </nav>

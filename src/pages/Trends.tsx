@@ -6,6 +6,7 @@ import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
 import Flag from '../components/Flag';
+import Flip from '../components/Flip';
 
 export default function Trends({ params }: { params: Record<string, string> }) {
   const w = (params.w && params.w in WORLDS ? params.w : '') as World | '';
@@ -57,6 +58,7 @@ export default function Trends({ params }: { params: Record<string, string> }) {
       </aside>
 
       <section className="panel tr-find" aria-live="polite">
+        <Flip cats={[{ id: 'w', he: 'עולמות', items: ['all', ...sorted.map((x) => x.w)] }]} cur={w || 'all'} onGo={(x) => set({ w: x === 'all' ? undefined : x, i: undefined, v: undefined })} noun="עולם" className="fl-in" />
         {w ? <Portrait w={w} sel={params} set={(p) => { set(p); setTab('i'); }} /> : <Overview />}
       </section>
 
