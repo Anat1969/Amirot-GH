@@ -114,3 +114,64 @@ mark.insight { background: linear-gradient(transparent 52%, var(--marker) 52%, v
 
 /* הייקו ושאלת בדיקה אינם אמירות: הם בגופן של קול הניתוח, כדי שהסריף המנוקד יישאר שמור לאמירה */
 .haiku .say, .check .say { font-family: var(--font-head); font-weight: 400; }
+
+/* ───── "הכול" הוא כפתור בפני עצמו (25.11.2026, כלל של ענת) ─────
+   הוא עומד לפני הקבוצה, עם אייקון של רשת ועם קו מפריד, ולא בתוכה */
+.chip-all { display: inline-flex; align-items: center; gap: 5px; background: var(--white); border: 1px solid var(--g4); font-weight: 500; }
+.chips-sep { width: 1px; align-self: stretch; min-height: 20px; background: var(--g4); margin-inline: 6px; }
+.chip svg, .topic svg { vertical-align: -2px; margin-inline-end: 4px; }
+.chip.grp { display: inline-flex; align-items: center; gap: 2px; }
+
+/* בקבוצה של כפתורים שווים: "הכול" בעמודה משלו, לגובה כל השורות, ושאר הכפתורים בגודל שווה לידו */
+.grp-pick, .scope .chips { grid-template-columns: 84px 1px repeat(auto-fill, minmax(150px, 1fr)); }
+:is(.grp-pick, .scope .chips) > :is(.chip-all, .chips-sep) { grid-row: span 2; }
+.chips-sep { margin-inline: 0; }
+.grp-pick .chip, .scope .chip { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.idea-strip .fl-cat-name { display: none; }
+/* ברשימה צרה (אטלס): "הכול" בשורה משלו, וקו מתחתיו */
+.vchips > .chip-all { grid-column: 1 / -1; justify-self: stretch; justify-content: center; }
+.vchips > .chips-sep { grid-column: 1 / -1; min-height: 1px; height: 1px; margin: 2px 0; }
+
+/* ───── דפדוף: אורכי, רוחבי והיררכי, ודפדוף אוטומטי כל 4 שניות ───── */
+.flip { display: inline-flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.flip .icon-btn { width: 30px; height: 30px; }
+.flip .fl-cat { background: var(--g5); }
+.fl-where { position: relative; display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 6px; min-width: 92px; justify-content: center; font-size: 12.5px; color: var(--g2); background: var(--g5); white-space: nowrap; }
+.fl-cat-name { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-head); font-weight: 500; color: var(--g1); }
+.fl-cat-name .num, .fl-pos .num { font-size: 11.5px; color: var(--g3); }
+.fl-pos .num { color: var(--g1); font-size: 12.5px; }
+.fl-time { position: absolute; inset-inline-start: 0; bottom: 0; height: 2px; width: 100%; background: var(--g1); transform-origin: right; animation: fl-time 4s linear forwards; }
+@keyframes fl-time { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.fl-play[aria-pressed="true"] { background: var(--g1); color: var(--white); }
+.flip.fl-in { display: flex; justify-content: center; padding: 6px 10px; border-bottom: 1px solid var(--g5); }
+.idea-strip .flip { margin-inline-start: auto; }
+.m-list .panel-hd .flip { margin-inline-start: auto; }
+@media (max-width: 860px) { .fl-cat-name { display: none; } .flip .fl-cat { display: none; } }
+
+/* ───── שלוש סוגות, שלוש מטרות (25.11.2026) ───── */
+.genre { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: baseline; padding: 10px 14px; background: var(--g5); border-inline-start: 3px solid var(--g1); font-size: 13px; color: var(--g2); }
+.gn-tag { grid-row: span 3; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-head); font-weight: 500; font-size: 15px; color: var(--g1); }
+.gn-goal b, .gn-meta b { font-family: var(--font-head); font-weight: 500; color: var(--g1); }
+.gn-goal { font-size: 14px; }
+.gn-meta { display: flex; flex-wrap: wrap; gap: 2px 16px; }
+.gn-not { flex-basis: 100%; color: var(--g3); }
+.gn-others { display: flex; flex-wrap: wrap; gap: 6px; }
+.gn-o { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-size: 12px; color: var(--g2); background: var(--white); text-decoration: none; box-shadow: var(--shadow-1); transition: box-shadow .15s, background .15s; }
+.gn-o:hover { box-shadow: var(--shadow-2); color: var(--g1); }
+.genre.compact { grid-template-columns: auto minmax(0, 1fr) auto; padding: 7px 12px; border-bottom: 1px solid var(--g4); }
+.genre.compact .gn-tag { grid-row: auto; }
+.genre.compact .gn-others { justify-content: flex-end; }
+.art-top { max-width: 880px; margin: 0 auto 18px; display: grid; gap: 10px; justify-items: stretch; }
+.art-top .flip { justify-self: center; }
+.ca-head .genre { margin: 10px 0; text-align: start; }
+.ca-head .flip { margin-bottom: 8px; }
+.a4-genre { font-family: var(--font-head); font-weight: 600; }
+@media (max-width: 860px) { .genre.compact { grid-template-columns: minmax(0, 1fr); } .genre.compact .gn-others { display: none; } .genre { grid-template-columns: minmax(0, 1fr); } .gn-tag { grid-row: auto; } }
+/* נייד: הדפדוף בשורה משלו מתחת למשפחות ולנושאים, כדי שלא ידחק אותם */
+@media (max-width: 860px) {
+  .idea-strip { flex-wrap: wrap; }
+  .idea-strip .flip { order: 9; flex-basis: 100%; justify-content: center; margin: 0; }
+  .idea-strip .groups, .idea-strip .topics { flex: 1 1 100%; }
+  .idea-strip .topic { padding-inline: 4px; gap: 3px; }
+}
+.grp-pick > :is(.chip-all, .chips-sep) { grid-row: span 3; }

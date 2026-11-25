@@ -9,6 +9,8 @@ export type { World, Lens };
 
 // שפה אינה תרבות: לכל אמירה שפה משלה. בלי נוסח מקור, השפה היא עברית.
 export const langOf = (s: Saying) => s.lang || 'he';
+// אייקון לכל משפחת נושאים, כדי שהנושא ייקרא גם בלי לקרוא את המילה
+export const GROUP_ICON: Record<string, string> = { act: 'compass', others: 'hands', speech: 'mouth', time: 'river', inner: 'lamp' };
 export const GROUP_OF: Record<string, string> = {};
 for (const g of GROUPS) for (const i of g.ideas) GROUP_OF[i] = g.id;
 export type { Saying, Side };

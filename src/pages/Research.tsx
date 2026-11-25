@@ -7,6 +7,14 @@ import { go } from '../route';
 import Rich, { Yr } from '../Rich';
 import Flag from '../components/Flag';
 import { Icon } from '../icons';
+import Flip from '../components/Flip';
+import GenreBand from '../components/GenreBand';
+// שלוש קטגוריות של צירים: איך המאגר נבנה, איך משווים, ומה הוא אומר על ערכים
+const AX_CATS = [
+  { id: 'method', he: 'שיטה', icon: 'bars', items: ['limits', 'register', 'travel'] },
+  { id: 'compare', he: 'השוואה', icon: 'mirror', items: ['roots', 'values', 'inside', 'grammars'] },
+  { id: 'values', he: 'ערכים', icon: 'heart', items: ['certainty', 'engage', 'love'] },
+];
 import './research.css';
 
 const LV: Record<Level, string> = { עובדה: 'fact', פרשנות: 'read', השערה: 'guess' };
@@ -42,6 +50,8 @@ export default function Research({ params }: { params: Record<string, string> })
       </aside>
 
       <section className="panel rs-find" aria-live="polite">
+        <GenreBand id="essay" compact />
+        <Flip cats={AX_CATS} cur={f.id} onGo={pick} noun="ממצא" catNoun="הקטגוריה" className="fl-in" />
         <FindingView f={f} />
       </section>
 

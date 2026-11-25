@@ -1,7 +1,7 @@
 // הדף: רעיון אחד בצורת דף גמרא. במרכז השאלה, מימין צד א, משמאל צד ב, ולמטה ההכרעה.
 // חקירה בתוך הדף בשלוש רמות: משפחת נושאים ← רעיון ← אמירה. קשר לרעיון אחר נפתח כאן, בלי לעבור דף.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { BY_IDEA, BY_ID, IDEA, IDEAS, CULTURE, KINDS, GROUPS, GROUP_OF, VALUES, LENSES, LANGS, langOf, relationsOf, where, km, fmt, matcher, type Saying, type Kind } from '../engine';
+import { BY_IDEA, BY_ID, IDEA, IDEAS, CULTURE, KINDS, GROUPS, GROUP_OF, GROUP_ICON, VALUES, LENSES, LANGS, langOf, relationsOf, where, km, fmt, matcher, type Saying, type Kind } from '../engine';
 import { go } from '../route';
 import { useStore } from '../store';
 import Rich, { Yr } from '../Rich';
@@ -9,6 +9,7 @@ import { Icon } from '../icons';
 import Voice from '../components/Voice';
 import Flag, { CultureName } from '../components/Flag';
 import { SidePic } from '../components/Art';
+import Flip from '../components/Flip';
 
 const SIDE_HE = { a: 'צד א', b: 'צד ב', s: 'הכרעה' } as const;
 type IdeaT = (typeof IDEAS)[number];
@@ -18,9 +19,6 @@ export default function Daf({ params }: { params: Record<string, string> }) {
   const sel = params.s && BY_ID[params.s] ? BY_ID[params.s] : null;
   const [tab, setTab] = useState('2');
   const group = GROUPS.find((g) => g.id === GROUP_OF[idea.id])!;
-  const order = GROUPS.flatMap((g) => g.ideas);
-  const ix = order.indexOf(idea.id);
-  const nav = (d: number) => go('daf', { i: order[(ix + d + order.length) % order.length] }, true);
   const select = (s: Saying | null) => go('daf', { i: idea.id, s: s?.id }, true);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
@@ -34,10 +32,9 @@ export default function Daf({ params }: { params: Record<string, string> }) {
   return (
     <main className="app-main daf-page">
       <div className="idea-strip no-print">
-        <button className="press icon-btn" onClick={() => nav(-1)} aria-label="הרעיון הקודם" title="הרעיון הקודם"><Icon name="prev" /></button>
         <div className="groups" role="group" aria-label="משפחות נושאים">
           {GROUPS.map((g) => (
-            <button key={g.id} className="chip grp" aria-pressed={g.id === group.id} onClick={() => go('daf', { i: g.ideas[0] }, true)}>{g.he}</button>
+            <button key={g.id} className="chip grp" aria-pressed={g.id === group.id} onClick={() => go('daf', { i: g.ideas[0] }, true)}><Icon name={GROUP_ICON[g.id]} size={15} />{g.he}</button>
           ))}
         </div>
         <div className="topics" role="group" aria-label={`רעיונות: ${group.he}`}>
@@ -50,8 +47,7 @@ export default function Daf({ params }: { params: Record<string, string> }) {
             );
           })}
         </div>
-        <span className="label"><bdi className="num">{ix + 1}/{order.length}</bdi></span>
-        <button className="press icon-btn" onClick={() => nav(1)} aria-label="הרעיון הבא" title="הרעיון הבא"><Icon name="next" /></button>
+        <Flip cats={GROUPS.map((g) => ({ id: g.id, he: g.he, icon: GROUP_ICON[g.id], items: g.ideas }))} cur={idea.id} onGo={(i) => go('daf', { i }, true)} noun="רעיון" catNoun="המשפחה" />
       </div>
 
       <div className="zone-tabs" role="tablist" aria-label="אזורי הדף">
