@@ -6,10 +6,13 @@ import { FINDINGS, FINDING, LEVELS, GRAMMARS, type Claim, type Finding, type Lev
 import { go } from '../route';
 import Rich, { Yr } from '../Rich';
 import Flag from '../components/Flag';
+import { Icon } from '../icons';
 import './research.css';
 
 const LV: Record<Level, string> = { עובדה: 'fact', פרשנות: 'read', השערה: 'guess' };
 const CERT = ['', 'נמוכה', 'בינונית', 'גבוהה'];
+// אייקון לכל ציר: מחזק את המילה, לא מחליף אותה
+const AX_ICON: Record<string, string> = { limits: 'bars', register: 'pen', travel: 'river', roots: 'tree', values: 'scale', inside: 'mirror', grammars: 'hands', certainty: 'compass', engage: 'house', love: 'heart' };
 
 export default function Research({ params }: { params: Record<string, string> }) {
   const f = FINDING[params.x] || FINDINGS[0];
@@ -30,7 +33,7 @@ export default function Research({ params }: { params: Record<string, string> })
         <div className="panel-bd scroll-in">
           {FINDINGS.map((x, i) => (
             <button key={x.id} className={`rs-axis${x.id === f.id ? ' on' : ''}`} onClick={() => pick(x.id)} aria-current={x.id === f.id ? 'true' : undefined}>
-              <span className="rs-n">{i}</span>
+              <span className="rs-n">{i}</span><span className="rs-ic"><Icon name={AX_ICON[x.id]} size={18} /></span>
               <span className="rs-ax-t"><b>{x.axis}</b><span className="rs-ask">{x.ask}</span></span>
               <span className="rs-move">{x.move}</span>
             </button>
@@ -61,7 +64,7 @@ function FindingView({ f }: { f: Finding }) {
   const isRatio = f.figure.bars.every((b) => b.of === 1);
   return (
     <div className="panel-bd scroll-in rs-body">
-      <span className="label">2 · {f.axis} · פעולת חשיבה: {f.move}</span>
+      <span className="label rs-kick"><Icon name={AX_ICON[f.id]} size={16} />{f.axis} · פעולת חשיבה: {f.move}</span>
       <h1 className="rs-title">{f.title}</h1>
 
       <figure className="rs-fig">
@@ -83,13 +86,13 @@ function FindingView({ f }: { f: Finding }) {
       </figure>
 
       <ol className="rs-layers">
-        <li><span className="rs-ln">1–2</span><div><h3>עדות והקשר</h3><Rich as="p" className="rs-ctx">{f.context}</Rich>{f.evidence.length > 0 && <p className="src">האמירות עצמן, עם המקור, בעמודת העדויות.</p>}</div></li>
-        <li><span className="rs-ln">3</span><div><h3>מה נמצא</h3><ul className="rs-claims"><ClaimP c={f.relation} /></ul></div></li>
-        <li><span className="rs-ln">4</span><div><h3>איך אפשר לקרוא את זה</h3><ul className="rs-claims">{f.readings.map((c, i) => <ClaimP key={i} c={c} />)}</ul></div></li>
-        <li><span className="rs-ln">5</span><div><h3>כמה אפשר לסמוך</h3>
+        <li><span className="rs-ln">1–2</span><div><h3><Icon name="quote" size={14} />עדות והקשר</h3><Rich as="p" className="rs-ctx">{f.context}</Rich>{f.evidence.length > 0 && <p className="src">האמירות עצמן, עם המקור, בעמודת העדויות.</p>}</div></li>
+        <li><span className="rs-ln">3</span><div><h3><Icon name="lens" size={14} />מה נמצא</h3><ul className="rs-claims"><ClaimP c={f.relation} /></ul></div></li>
+        <li><span className="rs-ln">4</span><div><h3><Icon name="eye" size={14} />איך אפשר לקרוא את זה</h3><ul className="rs-claims">{f.readings.map((c, i) => <ClaimP key={i} c={c} />)}</ul></div></li>
+        <li><span className="rs-ln">5</span><div><h3><Icon name="scale" size={14} />כמה אפשר לסמוך</h3>
           <p className="rs-cert"><span className="rs-meter" aria-label={`ודאות ${CERT[f.certainty.level]}`}>{[1, 2, 3].map((k) => <i key={k} className={k <= f.certainty.level ? 'on' : ''} />)}</span><b>ודאות {CERT[f.certainty.level]}</b></p>
           <Rich as="p" className="rs-why">{f.certainty.why}</Rich></div></li>
-        <li><span className="rs-ln">6</span><div><h3>שאלות להמשך</h3><ul className="rs-qs">{f.questions.map((q) => <li key={q}>{q}</li>)}</ul></div></li>
+        <li><span className="rs-ln">6</span><div><h3><Icon name="mouth" size={14} />שאלות להמשך</h3><ul className="rs-qs">{f.questions.map((q) => <Rich as="li" key={q}>{q}</Rich>)}</ul></div></li>
       </ol>
       {f.link && <button className="linkish" onClick={() => go(f.link!.page, f.link!.params)}>להעמקה: {f.link.label}</button>}
     </div>
@@ -140,7 +143,7 @@ function Evidence({ f }: { f: Finding }) {
       <div className="rs-talk">
         <h3>לשיחה</h3>
         <p className="src">שאלות הממצא, בנוסח מוכן להעתקה, לשיחה בין אנשים מתרבויות שונות.</p>
-        <button className="press rs-copy" onClick={copy}>{copied ? 'הועתק' : 'העתקת השאלות'}</button>
+        <button className="press rs-copy" onClick={copy}><Icon name="copy" size={15} />{copied ? 'הועתק' : 'העתקת השאלות'}</button>
       </div>
     </div>
   );

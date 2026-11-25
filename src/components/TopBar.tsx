@@ -6,14 +6,14 @@ import { Icon } from '../icons';
 import Flag from './Flag';
 
 const TABS = [
-  { id: 'home', he: 'בית' },
-  { id: 'daf', he: 'הדף' },
-  { id: 'mirror', he: 'מראה' },
-  { id: 'atlas', he: 'אטלס' },
-  { id: 'trends', he: 'תובנות' },
-  { id: 'research', he: 'מחקר' },
-  { id: 'article', he: 'כתבה' },
-  { id: 'creations', he: 'יצירות' },
+  { id: 'home', he: 'בית', icon: 'house' },
+  { id: 'daf', he: 'הדף', icon: 'page' },
+  { id: 'mirror', he: 'מראה', icon: 'mirror' },
+  { id: 'atlas', he: 'אטלס', icon: 'globe' },
+  { id: 'trends', he: 'תובנות', icon: 'spark' },
+  { id: 'research', he: 'מחקר', icon: 'lens' },
+  { id: 'article', he: 'כתבה', icon: 'doc' },
+  { id: 'creations', he: 'יצירות', icon: 'frame' },
 ];
 
 export default function TopBar({ page }: { page: string }) {
@@ -43,7 +43,7 @@ export default function TopBar({ page }: { page: string }) {
         </a>
         <nav className="tabs" aria-label="ניווט ראשי">
           {TABS.map((t) => (
-            <a key={t.id} className="tab" href={href(t.id)} aria-current={page === t.id ? 'page' : undefined}>{t.he}</a>
+            <a key={t.id} className="tab" href={href(t.id)} aria-current={page === t.id ? 'page' : undefined}><Icon name={t.icon} size={15} />{t.he}</a>
           ))}
         </nav>
         <div className="search" ref={box}>

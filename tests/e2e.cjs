@@ -229,6 +229,18 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await p.locator('.rs-ev .cc-btn').first().click(); await p.locator('.rs-ev .linkish').first().click(); await p.waitForTimeout(400);
   ok(p.url().includes('#/daf?i='), 'מחקר: עדות מובילה לדף שלה');
 
+  // שפה רכה: כל אמירה מנוקדת, וקוד הגופנים (25.11.2026)
+  for (const h of ['/daf?i=haste', '/research?x=certainty', '/research?x=love', '/trends']) {
+    await go(h);
+    const nk = await p.evaluate(() => { const els = [...document.querySelectorAll('.say, .q-say')].filter((e) => !e.closest('.haiku, .check')); return { n: els.length, bare: els.filter((e) => /[א-ת]{3}/.test(e.textContent) && !/[\u0591-\u05C7]/.test(e.textContent)).map((e) => e.textContent.slice(0, 30)) }; });
+    ok(nk.n > 0 && nk.bare.length === 0, 'כל אמירה מנוקדת ' + h + ' ' + JSON.stringify(nk));
+  }
+  await go('/research?x=certainty');
+  ok(await p.locator('.rs-find .q-say').count() >= 2, 'ציטוט של אמירה בתוך טקסט מקבל ניקוד וסריף');
+  const code = await p.evaluate(() => ({ body: getComputedStyle(document.body).fontFamily, num: getComputedStyle(document.querySelector('.num')).fontFamily, h1: getComputedStyle(document.querySelector('h1')).fontFamily, chip: getComputedStyle(document.querySelector('.rs-axis')).boxShadow }));
+  ok(code.body.includes('Assistant') && code.num.includes('Chivo') && code.h1.includes('Plex') && code.chip !== 'none', 'קוד הגופנים והכפתורים ' + JSON.stringify(code));
+  ok(await p.locator('.tab svg').count() === 8, 'אייקון לכל לשונית');
+
   // נייד: בלי גלילה אופקית בשום דף
   const m = await b.newPage({ viewport: { width: 390, height: 844 } });
   await m.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
