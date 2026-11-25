@@ -934,3 +934,10 @@ body:has(.page-home) { background: #11110f; }
   .zone[data-zone="2"] .daf-body { grid-template-rows: minmax(0, 1fr) auto; }
   .zone[data-zone="2"] .daf-body > :last-child { max-height: 30dvh; overflow: auto; }
 }
+/* 25.11.2026, ענת: "למה חתכת את חלון הגלילה במרכז התחתון?". העדשות היו מוגבלות ל-40%, אבל השורה שלהן נשארה בגודל התוכן,
+   ונשארה רצועה ריקה מתחתן. עכשיו העדשות לוקחות רק את הגובה שהן צריכות, עד 38% (יחס זהב), והדף ממלא את כל השאר.
+   כך אין שטח ריק בשום מחלוקת: מעט עדשות מקבלות מעט מקום, והרבה עדשות נגללות בתוך החלון */
+@media (min-width: 861px) {
+  .zone[data-zone="2"] .daf-body { grid-template-rows: minmax(0, 1fr) fit-content(38%); }
+  .zone[data-zone="2"] .daf-body > .gloss.lenses { max-height: none; min-height: 0; overflow: auto; }
+}
