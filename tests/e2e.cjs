@@ -257,7 +257,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(p.url().includes('i=together'), 'דפדוף רוחבי: המשפחה הבאה מתחילה ברעיון הראשון שלה');
   await go('/mirror');
   ok(await p.evaluate(() => { const a = document.querySelector('.grp-pick .chip-all'); return !!a && a.nextElementSibling?.classList.contains('chips-sep'); }), '"הכול" כפתור נפרד, עם מפריד');
-  for (const [h, g] of [['/article', 'article'], ['/creations', 'creation'], ['/research', 'essay']]) {
+  for (const [h, g] of [['/article', 'article'], ['/creations', 'creation'], ['/research', 'research']]) {
     await go(h);
     ok(await p.locator(`.genre.g-${g}`).count() === 1 && await p.locator(`.genre.g-${g} .gn-o`).count() === 2, 'פס סוגה ' + g);
   }
