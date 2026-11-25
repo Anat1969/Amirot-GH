@@ -1,6 +1,7 @@
-// שלושה סוגי מסמכים, ולכל אחד מטרה אחרת (25.11.2026, ענת: "חשובה ההבחנה, כי לכל מסמך יש מטרה אחרת").
+// שלושה סוגי מסמכים באפליקציה, ולכל אחד מטרה אחרת. מאמר (טיעון עם עמדה) הוא סוג רביעי, ואין כזה כאן:
+// "מאמר זה מאמר, מחקר זה מחקר" (ענת, 25.11.2026) (25.11.2026, ענת: "חשובה ההבחנה, כי לכל מסמך יש מטרה אחרת").
 // ההבחנה מוצגת בראש כל מסמך (GenreBand), ובכל מקום כתוב מה כל סוג עושה, ובמה הוא שונה מהשניים האחרים.
-export type GenreId = 'article' | 'creation' | 'essay';
+export type GenreId = 'article' | 'creation' | 'research';
 export type Genre = { id: GenreId; he: string; icon: string; page: string; goal: string; reader: string; form: string; not: string };
 export const GENRES: Genre[] = [
   { id: 'article', he: 'כתבה', icon: 'doc', page: 'article',
@@ -13,10 +14,10 @@ export const GENRES: Genre[] = [
     reader: 'מבקר בתערוכה, חצי דקה בעמידה',
     form: 'לוח A4 אחד: קומפוזיציה, תמונה, משפט, הייקו',
     not: 'לא נקראת ברצף. מה שלא נקלט במבט, לא נכנס ללוח.' },
-  { id: 'essay', he: 'מאמר', icon: 'lens', page: 'research',
-    goal: 'לבסס טענה, ולסמן כמה אפשר לסמוך עליה',
+  { id: 'research', he: 'מחקר', icon: 'lens', page: 'research',
+    goal: 'לשאול את המאגר שאלה, ולמדוד כמה אפשר לסמוך על התשובה',
     reader: 'חוקרת או מנחת דיאלוג, קריאה איטית',
-    form: 'טענה, ראיה, פרשנויות, מד ודאות ושאלות להמשך',
-    not: 'לא מספר סיפור ולא מכריע. הוא מפריד בין עובדה, פרשנות והשערה.' },
+    form: 'שאלה, שיטה, ראיה, פרשנויות, מד ודאות ושאלות להמשך',
+    not: 'הוא לא מאמר: אין בו עמדה של כותב. הוא מפריד בין עובדה, פרשנות והשערה, ומשאיר את ההכרעה לקוראת.' },
 ];
 export const GENRE = Object.fromEntries(GENRES.map((g) => [g.id, g])) as Record<GenreId, Genre>;

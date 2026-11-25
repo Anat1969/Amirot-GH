@@ -50,7 +50,7 @@ export default function Research({ params }: { params: Record<string, string> })
       </aside>
 
       <section className="panel rs-find" aria-live="polite">
-        <GenreBand id="essay" compact />
+        <GenreBand id="research" compact />
         <Flip cats={AX_CATS} cur={f.id} onGo={pick} noun="ממצא" catNoun="הקטגוריה" className="fl-in" />
         <FindingView f={f} />
       </section>
