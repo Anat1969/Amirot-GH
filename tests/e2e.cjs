@@ -5,6 +5,9 @@ const BASE = process.argv[2] || 'http://localhost:4173/';
 const MENU = fs.readFileSync(__dirname + '/fixtures/ai-menu.js', 'utf8');
 // עותק של הרכיב המשותף (AppOfApp-GH/public/creations.js), כי הסביבה לא מגיעה ל-Pages ול-Vercel
 const CREATIONS = fs.readFileSync(__dirname + '/fixtures/creations.js', 'utf8');
+// הכריכה: הרכיב המשותף <app-cover>, מעותק הגיבוי שבריפו
+const COVER = fs.readFileSync(__dirname + '/../public/vendor/cover.js', 'utf8');
+const SHARED = (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: r.request().url().endsWith('/cover.js') ? COVER : MENU });
 let fail = 0, pass = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
 (async () => {
@@ -16,13 +19,18 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
+  await p.route('**/appofapp-gh.vercel.app/**', SHARED);
   await p.route('**/fonts.googleapis.com/**', (r) => r.abort());
   await p.route('**/creations.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: CREATIONS }));
   const go = async (h) => { await p.goto(BASE + '#' + h, { waitUntil: 'networkidle' }); await p.waitForTimeout(500); };
 
-  // בית
-  await go('/');
+  // כריכה: הרכיב המשותף, אמנות מהנתונים, הייקו, חזון, מטרה, ופתיחה שמובילה לדף קיים
+  await go('/'); await p.waitForTimeout(800);
+  const cov = await p.evaluate(() => { const c = document.querySelector('app-cover'); const r = c && c.shadowRoot; return { has: !!c, haiku: r ? r.querySelectorAll('.haiku span').length : 0, open: r ? !!r.querySelector('[data-open], a[href="#/open"]') : false, art: document.querySelectorAll('.cover-art .cv-say').length, nik: [...document.querySelectorAll('.cover-art .cv-say')].every((e) => /[\u0591-\u05C7]/.test(e.textContent)), scroll: document.documentElement.scrollHeight <= innerHeight + 2 }; });
+  ok(cov.has && cov.haiku === 3 && cov.open && cov.art >= 3 && cov.nik && cov.scroll, 'כריכה: הייקו, פתיחה, אמנות מנוקדת, מסך אחד ' + JSON.stringify(cov));
+
+  // פתיחה (הדף הכהה, שהיה הבית)
+  await go('/open');
   ok(await p.locator('h1.home-h1').count() === 1, 'כותרת הבית');
   ok(await p.locator('ai-menu').count() === 1, 'כפתור לוגו יחיד');
   ok(await p.locator('.hx-entry').count() === 5, 'מפת התוכן: 5 כניסות');
@@ -39,13 +47,14 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   const q3 = await p.locator('.hx-live h2').textContent();
   await p.locator('.hx-live .mini-daf').click(); await p.waitForTimeout(400);
   ok(p.url().includes('#/daf?i='), 'בית: לחיצה על הדף החי פותחת את הדף (' + q3 + ')');
-  await go('/');
+  await go('/open');
+  ok(await p.locator('.hx-roles li').count() === 4, 'פתיחה: כל דף והתפקיד שלו');
   await p.locator('.hx-card').nth(2).click(); await p.waitForTimeout(400);
   ok(p.url().includes('#/mirror?k=impostor'), 'כרטיס תובנה מוביל למקור');
-  await go('/');
+  await go('/open');
 
   // ניווט בסרגל
-  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['מחקר', 'research'], ['כתבה', 'article'], ['בית', '/']]) {
+  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['מחקר', 'research'], ['כתבה', 'article'], ['פתיחה', 'open']]) {
     await p.locator('.tab', { hasText: t }).click(); await p.waitForTimeout(500);
     ok(p.url().includes(h), 'לשונית ' + t);
     ok(await p.locator(`.tab[aria-current="page"]`).textContent() === t, 'לשונית מסומנת ' + t);
@@ -257,12 +266,33 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(p.url().includes('i=together'), 'דפדוף רוחבי: המשפחה הבאה מתחילה ברעיון הראשון שלה');
   await go('/mirror');
   ok(await p.evaluate(() => { const a = document.querySelector('.grp-pick .chip-all'); return !!a && a.nextElementSibling?.classList.contains('chips-sep'); }), '"הכול" כפתור נפרד, עם מפריד');
-  for (const [h, g] of [['/article', 'article'], ['/creations', 'creation'], ['/research', 'research']]) {
+  for (const h of ['/article', '/creations']) {
     await go(h);
-    ok(await p.locator(`.genre.g-${g}`).count() === 1 && await p.locator(`.genre.g-${g} .gn-o`).count() === 2, 'פס סוגה ' + g);
+    ok(await p.locator('.genre.g-story').count() === 1 && await p.locator('.genre.g-story .gn-o').count() === 3, 'פס סוגה: כתבה, עם שלושת הסוגים האחרים ' + h);
   }
+  await go('/research');
+  ok(await p.locator('.rs-tool').count() === 1 && await p.locator('.genre').count() === 0, 'מחקר: כלי ולא סוג תוצר');
+  ok(await p.locator('.rs-write [data-write]').count() === 4 && (await p.locator('.rs-write [data-write="essay"]').getAttribute('href')).startsWith('https://claude.ai/new?q='), 'מחקר: לכתוב מזה, בארבעת הסוגים');
+
+  // ארבעה תוצרים (הסקיל anat-outputs): 3 מכל סוג, שרשראות, מקורות קיימים, ואין עובדה בלי מקור
+  await go('/creations?v=outputs');
+  const outs = await p.evaluate(() => [...document.querySelectorAll('.out-card')].map((c) => c.getAttribute('data-card')));
+  const kinds = ['story', 'paper', 'essay', 'creation'].map((k) => outs.filter((o) => o.startsWith('o-' + k)).length);
+  ok(kinds.every((n) => n >= 3) && await p.locator('.chain-row').count() === 3, 'ארבעה תוצרים: 3 מכל סוג, 3 שרשראות ' + kinds.join(','));
+  for (const id of outs) {
+    await go('/creations?v=outputs&o=' + id);
+    const t = await p.evaluate(() => {
+      const blocks = [...document.querySelectorAll('.out-doc .blk')];
+      return { blocks: blocks.length, factNoRef: blocks.filter((b) => b.dataset.level === 'fact' && !b.querySelector('.ref')).length, band: !!document.querySelector('.out-doc .genre'), transform: (document.querySelector('[data-transform]') || {}).href || '', q: !!document.querySelector('.out-question strong') };
+    });
+    ok(t.blocks >= 4 && t.factNoRef === 0 && t.band && t.transform.startsWith('https://claude.ai/new?q=') && t.q, 'תוצר ' + id + ' ' + JSON.stringify({ ...t, transform: !!t.transform }));
+  }
+  await go('/creations?v=outputs&o=o-paper-forgive');
+  ok(await p.locator('.out-from button').count() === 1 && await p.locator('[data-child="o-essay-measure"]').count() === 1, 'תוצר: התפתח מ, והתפתח אל');
+  await p.locator('.out-doc .ref').first().click(); await p.waitForTimeout(300);
+  ok(/#\/(daf|research|article)/.test(p.url()), 'מקור בתוצר פותח את המקום שלו באפליקציה');
   const ap = await b.newPage({ viewport: { width: 1440, height: 900 } });
-  await ap.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
+  await ap.route('**/appofapp-gh.vercel.app/**', SHARED);
   await ap.addInitScript(() => { try { localStorage.setItem('amirot.flip', '1'); } catch {} });
   await ap.goto(BASE + '#/daf?i=haste', { waitUntil: 'networkidle' }); await ap.waitForTimeout(4800);
   ok(!ap.url().includes('i=haste'), 'דפדוף אוטומטי אחרי 4 שניות: ' + ap.url().split('#')[1]);
@@ -271,7 +301,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // נייד: בלי גלילה אופקית בשום דף
   const m = await b.newPage({ viewport: { width: 390, height: 844 } });
   await m.addInitScript(noFlip);
-  await m.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
+  await m.route('**/appofapp-gh.vercel.app/**', SHARED);
   await m.route('**/fonts.googleapis.com/**', (r) => r.abort());
   for (const h of ['/', '/daf?i=risk', '/mirror', '/atlas', '/trends', '/research', '/article']) {
     await m.goto(BASE + '#' + h, { waitUntil: 'networkidle' }); await m.waitForTimeout(500);
@@ -285,7 +315,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   const r = await b.newContext({ reducedMotion: 'reduce' });
   await r.addInitScript(noFlip);
   const rp = await r.newPage();
-  await rp.route('**/appofapp-gh.vercel.app/**', (x) => x.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
+  await rp.route('**/appofapp-gh.vercel.app/**', SHARED);
   await rp.goto(BASE + '#/daf?i=haste', { waitUntil: 'networkidle' });
   ok(await rp.locator('.gloss-item').count() === 13, 'הפחתת תנועה: הדף מוצג');
 

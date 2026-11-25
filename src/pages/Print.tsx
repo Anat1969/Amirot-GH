@@ -46,7 +46,7 @@ export function Sheet({ a, n }: { a: Art; n: number }) {
     <article className="a4" lang="he" dir="rtl" data-ready={qr && fitted ? '1' : '0'} data-pt={pt}>
       <header className="a4-top">
         <span className="a4-brand"><b>אמירות</b> · אטלס של פתגמים וציטוטים</span>
-        <span className="a4-no"><b className="a4-genre">יצירה</b> · לוח לתערוכה, להבנה במבט אחד · <bdi>{n}</bdi> מתוך <bdi>{ARTICLES.length}</bdi></span>
+        <span className="a4-no"><b className="a4-genre">כתבה</b> · לוח A4 לתערוכה · <bdi>{n}</bdi> מתוך <bdi>{ARTICLES.length}</bdi></span>
       </header>
       <div className="a4-head">
         <span className="a4-kicker">{a.kicker}</span>

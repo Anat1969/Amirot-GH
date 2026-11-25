@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { useRoute } from './route';
 import TopBar from './components/TopBar';
 import Home from './pages/Home';
+import Cover from './pages/Cover';
 import Daf from './pages/Daf';
 import Mirror from './pages/Mirror';
 import Trends from './pages/Trends';
@@ -11,7 +12,7 @@ const Print = lazy(() => import('./pages/Print'));
 const Creations = lazy(() => import('./pages/Creations'));
 const Research = lazy(() => import('./pages/Research'));
 
-const TITLES: Record<string, string> = { home: 'אמירות', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', research: 'מחקר', article: 'כתבה', print: 'לוח A4', creations: 'יצירות' };
+const TITLES: Record<string, string> = { home: 'אמירות', open: 'פתיחה', daf: 'הדף', mirror: 'מראה', atlas: 'אטלס', trends: 'תובנות', research: 'מחקר', article: 'כתבה', print: 'לוח A4', creations: 'יצירות' };
 
 export default function App() {
   const { page, params } = useRoute();
@@ -25,12 +26,13 @@ export default function App() {
       case 'research': return <Research params={params} />;
       case 'article': return <Article params={params} />;
       case 'print': return <Print params={params} />;
-      case 'creations': return <Creations />;
-      default: return <Home />;
+      case 'creations': return <Creations params={params} />;
+      case 'open': return <Home />;
+      default: return <Cover />;
     }
   })();
   return (
-    <div className={`app-shell page-${page}`}>
+    <div className={`app-shell page-${page === 'open' ? 'home' : page === 'home' ? 'cover' : page}`}>
       <TopBar page={page === 'print' ? 'article' : page in TITLES ? page : 'home'} />
       <Suspense fallback={<main className="app-main"><p className="label">טוען…</p></main>}>{body}</Suspense>
     </div>

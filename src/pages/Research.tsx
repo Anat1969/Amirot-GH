@@ -8,7 +8,8 @@ import Rich, { Yr } from '../Rich';
 import Flag from '../components/Flag';
 import { Icon } from '../icons';
 import Flip from '../components/Flip';
-import GenreBand from '../components/GenreBand';
+import { KINDS, buildOutputPrompt, claudeUrl } from '../data/outputs';
+import { BY_ID as SAY } from '../engine';
 // שלוש קטגוריות של צירים: איך המאגר נבנה, איך משווים, ומה הוא אומר על ערכים
 const AX_CATS = [
   { id: 'method', he: 'שיטה', icon: 'bars', items: ['limits', 'register', 'travel'] },
@@ -50,7 +51,7 @@ export default function Research({ params }: { params: Record<string, string> })
       </aside>
 
       <section className="panel rs-find" aria-live="polite">
-        <GenreBand id="research" compact />
+        <p className="rs-tool"><span className="rs-tool-tag"><Icon name="lens" size={15} />כלי</span><span><b>מחקר הוא התהליך, לא התוצר.</b> מכל ממצא אפשר לכתוב כתבה, מאמר, מסה או יצירה.</span></p>
         <Flip cats={AX_CATS} cur={f.id} onGo={pick} noun="ממצא" catNoun="הקטגוריה" className="fl-in" />
         <FindingView f={f} />
       </section>
@@ -109,6 +110,16 @@ function FindingView({ f }: { f: Finding }) {
   );
 }
 
+// הממצא כחומר לכתיבה: כל שכבה עם רמת הידע שלה
+const findingText = (f: Finding) => [
+  `ממצא: ${f.title} (${f.axis})`,
+  `הקשר: ${f.context}`,
+  `[${f.relation.level}] ${f.relation.t}`,
+  ...f.readings.map((r) => `[${r.level}] ${r.t}`),
+  `ודאות: ${CERT[f.certainty.level]}. ${f.certainty.why}`,
+  `שאלות פתוחות: ${f.questions.join(' ')}`,
+].join('\n').replace(/\*\*|==/g, '');
+
 function Evidence({ f }: { f: Finding }) {
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -150,6 +161,13 @@ function Evidence({ f }: { f: Finding }) {
           </div>
         );
       })}
+      <div className="rs-write">
+        <h3>לכתוב מזה</h3>
+        <p className="src">פותח ב-Claude פרומפט ייעודי לסוג, עם הממצא, רמות הידע והמקורות.</p>
+        <div className="rs-write-btns">
+          {KINDS.map((k) => <a key={k.id} className="press rs-wk" data-write={k.id} target="_blank" rel="noreferrer" href={claudeUrl(buildOutputPrompt(k.id, { text: findingText(f), evidence: f.evidence.map((id) => SAY[id] ? `${SAY[id].he} (${SAY[id].src})` : id) }))}><Icon name={k.icon} size={14} />{k.name}<span className="src">{k.mechanism}</span></a>)}
+        </div>
+      </div>
       <div className="rs-talk">
         <h3>לשיחה</h3>
         <p className="src">שאלות הממצא, בנוסח מוכן להעתקה, לשיחה בין אנשים מתרבויות שונות.</p>

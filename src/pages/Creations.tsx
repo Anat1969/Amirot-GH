@@ -6,6 +6,10 @@ import { ARTICLES, ZONES } from '../data/articles';
 import { href } from '../route';
 import { Sheet, pdfName } from './Print';
 import GenreBand from '../components/GenreBand';
+import Outputs from './Outputs';
+import { OUTPUTS } from '../data/outputs';
+import { Icon } from '../icons';
+import { go } from '../route';
 import Flip from '../components/Flip';
 
 const TAARUCHA = 'https://taarucha.vercel.app';
@@ -16,7 +20,8 @@ const ZONE_LINE: Record<string, string> = {
   'יישום': 'מתי כל צד נכון, ומה עושים עם זה.',
 };
 
-export default function Creations() {
+export default function Creations({ params = {} }: { params?: Record<string, string> }) {
+  const outputsView = params.v === 'outputs';
   // חדר שכבר הועלה לתערוכה מקבל כפתור כניסה. המידע נשמר ב-creations.json, ונקרא בזמן ריצה
   const [rooms, setRooms] = useState<Record<string, string | undefined>>({});
   useEffect(() => {
@@ -41,16 +46,22 @@ export default function Creations() {
   return (
     <main ref={main} className="app-main creations-a4" dir="rtl" style={{ ['--z' as string]: z }}>
       <header className="ca-head">
-        <span className="label">יצירות · <bdi className="num">{ARTICLES.length}</bdi> כתבות · כל כתבה עמוד A4 אחד</span>
+        <span className="label">יצירות · <bdi className="num">{ARTICLES.length}</bdi> לוחות A4 · <bdi className="num">{OUTPUTS.length}</bdi> תוצרים בארבעה סוגים</span>
         <h1>מה האמירות יוצרות</h1>
+        <div className="ca-views" role="group" aria-label="תצוגה">
+          <button type="button" className="chip" aria-pressed={!outputsView} onClick={() => go('creations', {}, true)}><Icon name="frame" size={15} />לוחות A4 לתערוכה</button>
+          <button type="button" className="chip" aria-pressed={outputsView} data-view="outputs" onClick={() => go('creations', { v: 'outputs' }, true)}><Icon name="spark" size={15} />ארבעה תוצרים</button>
+        </div>
+        {outputsView ? <p>כתבה, מאמר, מסה ויצירה: ארבע דרכים לחשוב על אותה אמירה.</p> : <>
         <p>כל כתבה מוכנה להדפסה, לתלייה ולחדר בתערוכה.</p>
-        <GenreBand id="creation" />
+        <GenreBand kind="story" form="לוח A4 אחד, לתערוכה" compact />
         <Flip cats={ZONES.map((zz) => ({ id: zz, he: zz, items: ARTICLES.filter((x) => x.zone === zz).map((x) => x.id) }))} cur={at} onGo={(id) => { setAt(id); jump(`ca-a-${id}`); }} noun="יצירה" catNoun="השלב" />
         <nav className="ca-zones" aria-label="קפיצה לשלב">
           {ZONES.map((z) => <a key={z} className="press btn" href={`#ca-${z}`} onClick={(e) => { e.preventDefault(); jump(`ca-${z}`); }}>{z}</a>)}
         </nav>
+        </>}
       </header>
-      {ZONES.map((z) => (
+      {outputsView ? <Outputs params={params} /> : ZONES.map((z) => (
         <section key={z} id={`ca-${z}`} className="ca-zone" aria-label={z}>
           <h2 className="ca-zone-h"><b>{z}</b><span>{ZONE_LINE[z]}</span></h2>
           {ARTICLES.map((a, i) => a.zone === z && (
