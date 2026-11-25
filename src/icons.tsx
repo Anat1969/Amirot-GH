@@ -33,6 +33,7 @@ const P: Record<string, string> = {
   spark: 'M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3',
   lens: 'M10 4a6 6 0 100 12 6 6 0 000-12zM14.5 14.5L20 20M7.5 10h5',
   doc: 'M6 3h9l3 3v15H6zM9 9h6M9 13h6M9 17h4',
+  shelf: 'M3 20h18M5 20V6h3v14M8 20V4h3v16M13.5 20l-1.5-13 3-.4 1.5 13M18 20V8h2.5v12',
   frame: 'M4 4h16v16H4zM7 16l4-5 3 3 2-2 2 4',
   bars: 'M4 20V10M10 20V4M16 20v-7M3 20h18',
   link: 'M10 14l4-4M8 11l-2 2a3 3 0 004 4l2-2M16 13l2-2a3 3 0 00-4-4l-2 2',

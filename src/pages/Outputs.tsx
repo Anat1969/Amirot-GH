@@ -1,16 +1,16 @@
 // ארבעה תוצרים: כתבה, מאמר, מסה ויצירה. ארבעה מנגנוני חשיבה, ולא ארבע תבניות (הסקיל anat-outputs).
 // שלוש שרשראות. בכל אחת: הכתבה מעלה שאלה, המאמר מזהה סתירה, המסה מולידה יצירה.
 // כל פסקה מסומנת ברמת ידע, וכל עובדה מצביעה על מקור באמירות.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Rich from '../Rich';
 import { go } from '../route';
 import { Icon } from '../icons';
 import GenreBand from '../components/GenreBand';
 import { KINDS, KIND, LEVEL_NAME, CERTAINTY_NAME, CHAINS, OUTPUTS, refInfo, buildOutputPrompt, claudeUrl, type Output, type Kind } from '../data/outputs';
-import { forge } from '../data/forge';
+import { forge, randomIdea } from '../data/forge';
 import { loadOutputs, addOutput, flushPending, type CloudOutput } from '../cloud';
 import { IDEAS, IDEA, GROUPS, GROUP_ICON } from '../engine';
-import Voice from '../components/Voice';
+import { OutputSheet } from './OutSheet';
 import './outputs.css';
 
 const set = (params: Record<string, string>, patch: Record<string, string | undefined>) => go('creations', { ...params, v: 'outputs', ...patch }, true);
@@ -71,6 +71,7 @@ function OutputView({ o, params, all, onForge }: { o: Output; params: Record<str
           onClick={() => { navigator.clipboard?.writeText(prompt).then(() => setCopied(true), () => {}); }}>
           <Icon name={next.icon} size={14} /> {copied ? 'הפרומפט הועתק' : `לנסח עם Claude`}
         </a>
+        {added && !(o as CloudOutput).local && <button type="button" className="press btn" data-to-library onClick={() => go('library', { o: o.id })}><Icon name="shelf" size={14} /> הלוח בספרייה</button>}
         <span className="src">{o.transition.why}</span>
       </footer>
       <details className="out-quality">
@@ -88,21 +89,37 @@ export default function Outputs({ params }: { params: Record<string, string> }) 
   const [draft, setDraft] = useState<Output | null>(null);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
-  useEffect(() => { flushPending().finally(() => loadOutputs().then(setCloud)); }, []);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { flushPending().finally(() => loadOutputs().then((x) => { setCloud(x); setLoaded(true); })); }, []);
   const all: Output[] = useMemo(() => [...OUTPUTS, ...cloud], [cloud]);
   const sel = all.find((x) => x.id === params.o) || null;
-  const startForge = (k: Kind, from?: Output, idea?: string) => {
-    const d = forge(k, idea || from?.chain || IDEAS[0].id, from);
-    setDraft(d); setMsg('');
-    requestAnimationFrame(() => document.querySelector('.forge-edit')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  // יצירה בלחיצה: המנוע בונה את התוצר מהמאגר, והוא מוצג מיד כלוח A4 ערוך. מאשרים, והוא נשמר בספרייה
+  const [seed, setSeed] = useState(0);
+  const [from, setFrom] = useState<Output | null>(null);
+  const startForge = (k: Kind, src?: Output, idea?: string) => {
+    const id = idea || src?.chain || randomIdea();
+    setFrom(src || null); setSeed(0);
+    setDraft(forge(k, id, src)); setMsg('');
+    requestAnimationFrame(() => document.querySelector('.forge-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
+  const another = () => { if (!draft) return; const n = seed + 1; setSeed(n); setDraft(forge(draft.kind, draft.chain, from || undefined, n)); };
+  const otherIdea = () => { if (!draft) return; setSeed(0); setDraft(forge(draft.kind, randomIdea(draft.chain), undefined)); setFrom(null); };
+  // הגעה מהספרייה או מהכפתור "תוצר חדש בלחיצה": היצירה מתחילה מעצמה
+  const made = useRef(false);
+  useEffect(() => {
+    if (params.make !== '1' || made.current) return;
+    const src = params.from ? all.find((x) => x.id === params.from) : undefined;
+    if (params.from && !src && !loaded) return; // מחכים לענן, כדי למצוא את התוצר שממנו ממשיכים
+    made.current = true;
+    startForge((kind || 'story') as Kind, src);
+  }, [params.make, params.from, loaded, all.length]);
   const save = async () => {
     if (!draft) return;
     setBusy(true);
     const r = await addOutput(draft);
     setBusy(false);
-    if (r.ok) { setCloud((c) => [r.out, ...c]); setDraft(null); set(params, { o: r.out.id, k: undefined }); setMsg(''); }
-    else if (r.local) { setCloud((c) => [r.local!, ...c]); setDraft(null); set(params, { o: r.local.id }); setMsg(r.error); }
+    if (r.ok) { setCloud((c) => [r.out, ...c]); setDraft(null); go('library', { o: r.out.id }); }
+    else if (r.local) { setCloud((c) => [r.local!, ...c]); setDraft(null); go('library', { o: r.local.id }); }
     else setMsg(r.error);
   };
   const shown = kind ? KINDS.filter((k) => k.id === kind) : KINDS;
@@ -132,7 +149,7 @@ export default function Outputs({ params }: { params: Record<string, string> }) 
         );
       })()}
       <Forge onStart={startForge} sel={sel} />
-      {draft && <DraftEditor d={draft} setD={setDraft} onSave={save} onCancel={() => setDraft(null)} busy={busy} msg={msg} />}
+      {draft && <Preview d={draft} from={from} onSave={save} onAnother={another} onOtherIdea={otherIdea} onCancel={() => setDraft(null)} busy={busy} msg={msg} />}
       {!draft && msg && <p className="forge-msg">{msg}</p>}
       <div className="chains">
         <div className="chain-head" aria-hidden="true" style={{ ['--n' as string]: shown.length }}><span />{shown.map((k) => <span key={k.id} className="out-tag"><Icon name={k.icon} size={14} />{k.name}</span>)}</div>
@@ -172,24 +189,25 @@ export default function Outputs({ params }: { params: Record<string, string> }) 
   );
 }
 
-// הסדנה: בוחרים סוג ומחלוקת, והמנוע בונה טיוטה מהמאגר. כשתוצר פתוח, אפשר להמשיך ממנו
+// הסדנה: לחיצה אחת יוצרת תוצר. אפשר לבחור סוג ומחלוקת, או להשאיר "הפתעה". אין מה לכתוב
 function Forge({ onStart, sel }: { onStart: (k: Kind, from?: Output, idea?: string) => void; sel: Output | null }) {
   const [k, setK] = useState<Kind>('story');
-  const [idea, setIdea] = useState(IDEAS[0].id);
+  const [idea, setIdea] = useState('');
   return (
-    <section className="forge" aria-label="סדנה: יצירת תוצר">
-      <h3 className="forge-h"><Icon name="pen" size={16} />סדנה: תוצר חדש מתוך המאגר</h3>
-      <p className="src">המנוע בונה טיוטה מהאמירות עצמן, וכל עובדה בה מגיעה עם המקור שלה. עורכים, ומוסיפים לאפליקציה.</p>
+    <section className="forge" aria-label="סדנה: יצירת תוצר בלחיצה">
+      <h3 className="forge-h"><Icon name="spark" size={16} />תוצר חדש בלחיצה</h3>
+      <p className="src">המנוע כותב את התוצר מתוך האמירות עצמן, ומעמד אותו כלוח A4. כל עובדה בו מגיעה עם המקור שלה. מאשרים, והוא נשמר בספרייה.</p>
       <div className="forge-row">
         <div className="forge-kinds" role="group" aria-label="סוג">
           {KINDS.map((x) => <button key={x.id} type="button" className="chip" aria-pressed={k === x.id} data-forge-kind={x.id} onClick={() => setK(x.id)}><Icon name={x.icon} size={14} />{x.name}</button>)}
         </div>
         <label className="forge-idea"><span className="label">מחלוקת</span>
           <select className="field" value={idea} onChange={(e) => setIdea(e.target.value)} data-forge-idea>
+            <option value="">הפתעה: מחלוקת אקראית</option>
             {GROUPS.map((g) => <optgroup key={g.id} label={g.he}>{g.ideas.map((i) => <option key={i} value={i}>{IDEA[i].chip}: {IDEA[i].q}</option>)}</optgroup>)}
           </select>
         </label>
-        <button type="button" className="press btn primary" data-forge-go onClick={() => onStart(k, undefined, idea)}><Icon name={KIND[k].icon} size={14} /> יצירת {KIND[k].name}</button>
+        <button type="button" className="press btn primary forge-go" data-forge-go onClick={() => onStart(k, undefined, idea || undefined)}><Icon name={KIND[k].icon} size={14} /> יצירת {KIND[k].name} בלחיצה</button>
         {sel && <button type="button" className="press btn" onClick={() => onStart(k, sel)}>{KIND[k].name} שממשיך את "{sel.title}"</button>}
       </div>
       <p className="src forge-groups">{GROUPS.map((g) => <span key={g.id}><Icon name={GROUP_ICON[g.id]} size={12} /> {g.he}</span>)}</p>
@@ -197,32 +215,27 @@ function Forge({ onStart, sel }: { onStart: (k: Kind, from?: Output, idea?: stri
   );
 }
 
-// עריכת הטיוטה בתוך הדף: כל שדה עם הקלטה ותמלול. רמת הידע והמקורות נשמרים, כדי שעובדה לא תאבד את המקור שלה
-function DraftEditor({ d, setD, onSave, onCancel, busy, msg }: { d: Output; setD: (o: Output) => void; onSave: () => void; onCancel: () => void; busy: boolean; msg: string }) {
-  const up = (patch: Partial<Output>) => setD({ ...d, ...patch });
-  const upB = (i: number, text: string) => up({ blocks: d.blocks.map((b, j) => (j === i ? { ...b, text } : b)) });
-  const drop = (i: number) => up({ blocks: d.blocks.filter((_, j) => j !== i) });
+// התצוגה המקדימה: הלוח המוכן עצמו, ומעליו אישור. "גרסה אחרת" מביאה אמירות אחרות מאותה מחלוקת
+function Preview({ d, from, onSave, onAnother, onOtherIdea, onCancel, busy, msg }: { d: Output; from: Output | null; onSave: () => void; onAnother: () => void; onOtherIdea: () => void; onCancel: () => void; busy: boolean; msg: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [z, setZ] = useState(1);
+  useEffect(() => {
+    const el = box.current; if (!el) return;
+    const ro = new ResizeObserver(() => setZ(Math.min(1, (el.clientWidth - 8) / 794)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <article className={`out-doc out-${d.kind} forge-edit`} data-draft>
-      <GenreBand kind={d.kind} form={d.form} />
-      <p className="src">טיוטה מהמאגר, על "{IDEA[d.chain]?.q}". כל שדה פתוח לעריכה. בעובדה אפשר לשנות ניסוח, והמקור נשאר מחובר.</p>
-      <label className="fe-f"><span className="label">כותרת</span><input className="field fe-title" value={d.title} onChange={(e) => up({ title: e.target.value })} /></label>
-      <label className="fe-f"><span className="label">פתיח</span><textarea className="field" rows={2} value={d.lead} onChange={(e) => up({ lead: e.target.value })} /><Voice value={d.lead} onChange={(v) => up({ lead: v })} /></label>
-      {d.blocks.map((b, i) => (
-        <div key={i} className={`fe-blk blk-${b.level}`}>
-          <div className="fe-bh"><span className={`olv olv-${b.level}`}>{LEVEL_NAME[b.level]}</span>{b.h && <span className="label">{b.h}</span>}<button type="button" className="press icon-btn" aria-label="מחיקת הפסקה" title="מחיקת הפסקה" onClick={() => drop(i)}><Icon name="x" size={12} /></button></div>
-          <textarea className="field" rows={3} value={b.text} onChange={(e) => upB(i, e.target.value)} />
-          <Voice value={b.text} onChange={(v) => upB(i, v)} />
-          {b.refs && <div className="ref-row">{b.refs.map((r) => <Ref key={r} id={r} />)}</div>}
-        </div>
-      ))}
-      <label className="fe-f"><span className="label">השאלה שנשארת</span><input className="field" value={d.question} onChange={(e) => up({ question: e.target.value })} /></label>
-      <footer className="out-next">
-        <button type="button" className="press btn primary" disabled={busy} onClick={onSave} data-save><Icon name="plus" size={14} /> {busy ? 'שומר…' : 'הוספה לאפליקציה'}</button>
-        <a className="press btn" href={claudeUrl(buildOutputPrompt(d.kind, { text: [d.title, d.lead, ...d.blocks.map((b) => `[${LEVEL_NAME[b.level]}] ${b.text}`), d.question].join('\n') }))} target="_blank" rel="noreferrer">לשפר ניסוח עם Claude</a>
-        <button type="button" className="press btn" onClick={onCancel}>ביטול</button>
+    <section className={`forge-preview out-${d.kind}`} data-draft aria-label="התוצר המוכן, לפני אישור">
+      <div className="fp-acts">
+        <span className="fp-what"><Icon name={KIND[d.kind].icon} size={15} /><strong>התוצר מוכן לאישור: {KIND[d.kind].name}</strong><span className="src">על "{IDEA[d.chain]?.q}"{from ? `, ממשיך את "${from.title}"` : ''}</span></span>
+        <button type="button" className="press btn primary" disabled={busy} onClick={onSave} data-save><Icon name="plus" size={14} /> {busy ? 'שומר…' : 'אישור ושמירה בספרייה'}</button>
+        <button type="button" className="press btn" onClick={onAnother} data-another><Icon name="reset" size={14} /> גרסה אחרת</button>
+        {!from && <button type="button" className="press btn" onClick={onOtherIdea} data-other-idea><Icon name="spark" size={14} /> מחלוקת אחרת</button>}
+        <button type="button" className="press icon-btn" aria-label="ביטול" title="ביטול" onClick={onCancel}><Icon name="x" size={14} /></button>
         {msg && <span className="forge-msg" role="status">{msg}</span>}
-      </footer>
-    </article>
+      </div>
+      <div className="fp-sheet" ref={box} style={{ ['--zp' as string]: z }}><OutputSheet o={d} date={new Date().toLocaleDateString('he-IL')} /></div>
+    </section>
   );
 }

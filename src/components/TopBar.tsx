@@ -14,6 +14,7 @@ const TABS = [
   { id: 'research', he: 'מחקר', icon: 'lens' },
   { id: 'article', he: 'כתבה', icon: 'doc' },
   { id: 'creations', he: 'יצירות', icon: 'frame' },
+  { id: 'library', he: 'ספרייה', icon: 'shelf' },
 ];
 
 export default function TopBar({ page }: { page: string }) {

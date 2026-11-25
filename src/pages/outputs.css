@@ -86,3 +86,63 @@
 .added { display: grid; gap: 8px; }
 .added-h { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500; }
 .added-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+
+/* יצירה בלחיצה: התוצר מוצג מיד כלוח A4, ומעליו אישור */
+.forge-go { font-size: 15px; padding-inline: 18px; }
+.forge-preview { display: grid; gap: 10px; justify-items: center; padding: 12px; background: #e9e8e4; }
+.fp-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; max-width: 794px; }
+.fp-acts .btn { display: inline-flex; align-items: center; gap: 6px; }
+.fp-acts .btn.primary { background: var(--ink); color: #fff; }
+.fp-what { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 100%; font-size: 15px; flex-wrap: wrap; }
+.fp-acts .icon-btn { margin-inline-start: auto; }
+.fp-sheet { width: 100%; max-width: 794px; display: grid; justify-items: center; }
+.fp-sheet .a4 { zoom: var(--zp, 1); }
+
+/* לוח A4 של תוצר: אותה מערכת של לוח הכתבה, עם דיפטיכון נמוך יותר כדי לפנות מקום לגוף */
+.a4-out .a4-head h1 { font-size: 30pt; }
+.a4-out { grid-template-rows: auto auto minmax(0, 1fr) auto auto; }
+.a4-out .a4-lead { height: auto; min-height: 0; }
+.a4-out .a4-body { overflow: visible; }
+.a4-pic-word { display: grid; place-items: center; background: var(--rule-soft); font-family: var(--serif); font-size: 18pt; }
+.a4-pic-word.s-a { border-top: 2.5pt solid var(--side-a); } .a4-pic-word.s-b { border-top: 2.5pt solid var(--side-b); }
+.a4-blk h2 { display: flex; align-items: baseline; gap: 2mm; }
+.a4-lv { font-family: var(--mono); font-size: 6.5pt; font-weight: 400; color: var(--ink-mute); letter-spacing: .04em; }
+.a4-blk.lv-hypothesis p { border-inline-start: 1.2pt solid var(--rule); padding-inline-start: 2.5mm; }
+.a4-blk.lv-imagination p { font-style: italic; border-inline-start: 1.2pt dashed var(--ink-mute); padding-inline-start: 2.5mm; }
+.a4-cert { display: flex; align-items: center; gap: 1.5mm; font-size: 8pt; }
+.a4-cert span { font-family: var(--mono); font-size: 7pt; color: var(--ink-mute); }
+.a4-cert i { width: 7mm; height: 2mm; box-shadow: inset 0 0 0 .6pt var(--ink); }
+.a4-cert i.on { background: var(--ink); }
+.a4-q p { font-weight: 600; }
+
+/* הספרייה */
+.library { display: grid; gap: 16px; align-content: start; padding: 16px; }
+.lib-head { display: grid; gap: 6px; max-width: 1240px; width: 100%; margin: 0 auto; }
+.lib-head h1 { margin: 0; font-size: clamp(24px, 2.4vw, 32px); font-weight: 500; }
+.lib-head p { margin: 0; color: var(--ink-soft); }
+.lib-filter { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lib-filter .chip { display: inline-flex; align-items: center; gap: 5px; min-width: 86px; justify-content: center; }
+.lib-new { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff; }
+.lib-big { display: grid; gap: 10px; justify-items: center; padding: 12px; background: #e9e8e4; max-width: 1240px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+.lib-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; max-width: 794px; }
+.lib-acts .btn { display: inline-flex; align-items: center; gap: 6px; }
+.lib-acts .btn.primary { background: var(--ink); color: #fff; }
+.lib-pos { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; }
+.lib-sheet .a4 { zoom: var(--z, 1); }
+.lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 210px)); gap: 16px; max-width: 1240px; width: 100%; margin: 0 auto; }
+.lib-card { display: grid; gap: 4px; align-content: start; text-align: start; padding: 10px; background: #fff; border: 0; cursor: pointer; font: inherit; color: var(--ink); box-shadow: var(--shadow-1); transition: box-shadow .15s, transform .15s; }
+.lib-card:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
+.lib-card:active { transform: translateY(0); }
+.lib-card.on { outline: 2px solid var(--ink); }
+.lib-card strong { font-family: var(--font-head, inherit); font-weight: 500; font-size: 14px; line-height: 1.35; }
+.lib-thumb { display: block; width: 100%; aspect-ratio: 210 / 297; overflow: hidden; background: #fff; pointer-events: none; }
+.lib-thumb .a4 { zoom: .215; box-shadow: none; }
+.lib-empty { display: grid; gap: 8px; justify-items: start; max-width: 1240px; width: 100%; margin: 0 auto; padding: 18px; background: #fff; box-shadow: var(--shadow-1); }
+.lib-empty p { margin: 0; }
+.lib-empty .btn { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff; }
+@media print {
+  .page-library .library { padding: 0; display: block; }
+  .page-library .lib-big { padding: 0; background: none; }
+  .page-library .lib-sheet .a4 { zoom: 1; box-shadow: none; }
+  .page-library .app-shell, .page-library { height: auto; }
+}
