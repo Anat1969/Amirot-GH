@@ -27,7 +27,7 @@ export default function Article({ params }: { params: Record<string, string> }) 
           );
         })}
       </nav>
-      <div className="art-top"><GenreBand id="article" /><Flip cats={ZONES.map((z) => ({ id: z, he: z, items: ARTICLES.filter((x) => x.zone === z).map((x) => x.id) }))} cur={a.id} onGo={(id) => go('article', { a: id }, true)} noun="כתבה" catNoun="השלב" /></div>
+      <div className="art-top"><GenreBand kind="story" form="כתבת מגזין, ולוח A4 לתערוכה" /><Flip cats={ZONES.map((z) => ({ id: z, he: z, items: ARTICLES.filter((x) => x.zone === z).map((x) => x.id) }))} cur={a.id} onGo={(id) => go('article', { a: id }, true)} noun="כתבה" catNoun="השלב" /></div>
       <Feature a={a} key={a.id} />
     </main>
   );

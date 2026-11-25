@@ -7,7 +7,7 @@
 .lv { display: inline-block; width: 10px; height: 10px; border: 1.5px solid var(--ink); flex: 0 0 auto; }
 .lv-fact { background: var(--ink); }
 .lv-read { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
-.lv-guess { background: transparent; border-style: dashed; }
+.lv-guess { background: var(--g4, #e6e5e0); border-color: var(--g3, #8e8d87); } /* השערה באפור, כמו בסקיל ארבעת התוצרים. מקווקו שמור לדמיון */
 .rs-ladder { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 8px 14px; border-bottom: 1px solid var(--rule-soft); }
 .rs-lv { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); cursor: help; }
 .rs-ladder .src { flex-basis: 100%; margin: 0; }
@@ -89,3 +89,12 @@
   .rs-claim { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .rs-layers > li { grid-template-columns: 28px minmax(0, 1fr); }
 }
+
+/* כלי, לא תוצר: מחקר הוא התהליך שקודם לכל ארבעת התוצרים */
+.rs-tool { display: flex; align-items: center; gap: 10px; margin: 0; padding: 7px 12px; background: var(--rule-soft); border-bottom: 1px solid var(--rule); font-size: 13px; }
+.rs-tool-tag { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.rs-write { margin-top: 14px; display: grid; gap: 6px; }
+.rs-write h3 { font-size: 14px; margin: 0; }
+.rs-write-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.rs-wk { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 6px; padding: 8px 10px; text-decoration: none; font-size: 13.5px; }
+.rs-wk .src { grid-column: 2; }

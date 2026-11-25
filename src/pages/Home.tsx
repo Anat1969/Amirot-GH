@@ -40,6 +40,13 @@ export default function Home() {
     { id: 'article', he: 'כתבות', n: ARTICLES.length, unit: 'גילויים' },
   ];
 
+  const ROLES = [
+    { n: 'כריכה', to: 'רגש', what: 'הדף נכתב בדיו', href: '#/' },
+    { n: 'פתיחה', to: 'רוח', what: 'למה ואיך', href: '#/open' },
+    { n: 'כלים', to: 'שכל', what: 'הדף, מראה, אטלס, תובנות, מחקר', href: href('daf') },
+    { n: 'יצירות', to: 'יצר', what: 'לוחות A4 וארבעה תוצרים', href: href('creations', { v: 'outputs' }) },
+  ];
+
   const vid = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const sound = () => { const v = vid.current; if (!v) return; v.muted = !v.muted; if (!v.muted) { v.currentTime = 0; v.play(); } setMuted(v.muted); };
@@ -63,6 +70,10 @@ export default function Home() {
             </a>
           ))}
         </nav>
+        {/* מערכת הדפים: כל סוג דף פונה אל כוח אחר באדם (Claude-GH, תקן הכריכה) */}
+        <ul className="hx-roles" aria-label="כל דף והתפקיד שלו">
+          {ROLES.map((r) => <li key={r.n}><b>{r.n}</b><span>{r.to}</span><a href={r.href}>{r.what}</a></li>)}
+        </ul>
       </section>
 
       <section className="hx-film" aria-label="סרטון: סיור באפליקציה">

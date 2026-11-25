@@ -6,7 +6,7 @@ import { Icon } from '../icons';
 import Flag from './Flag';
 
 const TABS = [
-  { id: 'home', he: 'בית', icon: 'house' },
+  { id: 'open', he: 'פתיחה', icon: 'house' },
   { id: 'daf', he: 'הדף', icon: 'page' },
   { id: 'mirror', he: 'מראה', icon: 'mirror' },
   { id: 'atlas', he: 'אטלס', icon: 'globe' },
@@ -37,7 +37,7 @@ export default function TopBar({ page }: { page: string }) {
   return (
     <header className="topbar">
       <div className="topbar-in">
-        <a className="brand press-free" href="#/" aria-label="אמירות, לדף הבית">
+        <a className="brand press-free" href="#/" aria-label="אמירות, לכריכה">
           <img src="./icon.svg" alt="" />
           <span>אמירות <small>כמה דומה השונה</small></span>
         </a>
