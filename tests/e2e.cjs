@@ -16,6 +16,19 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   // הדפדוף האוטומטי עצור בבדיקות, כדי שהעמוד לא יתחלף באמצע בדיקה. בדיקה נפרדת למטה מפעילה אותו
   const noFlip = () => { try { localStorage.setItem('amirot.flip', '0'); } catch {} };
   await ctx.addInitScript(noFlip);
+  // הענן (Supabase) מדומה: הסביבה לא מגיעה ל-supabase.co. ה-RPC מחזיר שורה, ובודק כמו הפונקציה במסד שאין עובדה בלי מקור
+  const cloudRows = [];
+  await ctx.route('**/ktqmwpbzcnzkhjskqisy.supabase.co/**', async (r) => {
+    const u = r.request().url();
+    if (u.includes('/rpc/amirot_add_output')) {
+      const p = JSON.parse(r.request().postData()).p;
+      if (p.blocks.some((b) => b.level === 'fact' && !(b.refs && b.refs.length))) return r.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: 'עובדה בלי מקור' }) });
+      const row = { id: 'u-' + p.kind + '-test' + cloudRows.length, kind: p.kind, idea: p.idea, title: p.title, lead: p.lead, blocks: p.blocks, question: p.question, certainty: p.certainty || null, derived_from: p.derivedFrom || null, form: p.form || null, created_at: new Date().toISOString() };
+      cloudRows.unshift(row);
+      return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(row) });
+    }
+    return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cloudRows) });
+  });
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
@@ -291,6 +304,23 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   ok(await p.locator('.out-from button').count() === 1 && await p.locator('[data-child="o-essay-measure"]').count() === 1, 'תוצר: התפתח מ, והתפתח אל');
   await p.locator('.out-doc .ref').first().click(); await p.waitForTimeout(300);
   ok(/#\/(daf|research|article)/.test(p.url()), 'מקור בתוצר פותח את המקום שלו באפליקציה');
+
+  // סדנה: תוצר חדש נוצר בתוך האפליקציה, נערך, ומתווסף לה (ענן מדומה)
+  await go('/creations?v=outputs');
+  await p.locator('[data-forge-kind="paper"]').click();
+  await p.locator('[data-forge-idea]').selectOption('truth');
+  await p.locator('[data-forge-go]').click(); await p.waitForTimeout(300);
+  const dr = await p.evaluate(() => { const d = document.querySelector('[data-draft]'); const bl = [...d.querySelectorAll('.fe-blk')]; return { blocks: bl.length, factsRef: bl.filter((b) => b.classList.contains('blk-fact')).every((b) => b.querySelector('.ref')), title: d.querySelector('.fe-title').value }; });
+  ok(dr.blocks >= 5 && dr.factsRef && dr.title.includes('אמת'), 'סדנה: טיוטת מאמר מהמאגר, וכל עובדה עם מקור ' + JSON.stringify(dr));
+  await p.locator('.fe-title').fill('מאמר בדיקה: אמת או שלום');
+  await p.locator('[data-save]').click(); await p.waitForTimeout(500);
+  ok(/o=u-paper-test/.test(decodeURIComponent(p.url())) && await p.locator('.added [data-card^="u-paper"]').count() === 1 && (await p.locator('.out-doc .out-title').textContent()).includes('מאמר בדיקה'), 'סדנה: הוספה לאפליקציה, והתוצר מופיע ונפתח');
+  await p.locator('[data-forge="essay"]').click(); await p.waitForTimeout(300);
+  ok(await p.locator('[data-draft].out-essay').count() === 1, 'סדנה: להפוך למסה בתוך האפליקציה');
+  await p.locator('[data-save]').click(); await p.waitForTimeout(500);
+  const ess = cloudRows[0];
+  ok(ess && ess.kind === 'essay' && ess.derived_from === 'u-paper-test0' && ess.idea === 'truth', 'סדנה: המסה נשמרה עם "התפתח מ" והמחלוקת ' + JSON.stringify(ess && { k: ess.kind, d: ess.derived_from }));
+  ok(await p.locator('.out-from button').count() === 1, 'סדנה: בתוצר שנוסף רואים ממה התפתח');
   const ap = await b.newPage({ viewport: { width: 1440, height: 900 } });
   await ap.route('**/appofapp-gh.vercel.app/**', SHARED);
   await ap.addInitScript(() => { try { localStorage.setItem('amirot.flip', '1'); } catch {} });

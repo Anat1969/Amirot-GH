@@ -63,3 +63,26 @@
   .chain-row .out-card + .out-card::before { display: none; }
   .out-doc { padding: 16px; }
 }
+
+/* סדנה: יצירת תוצר בתוך האפליקציה */
+.forge { display: grid; gap: 8px; padding: 14px 18px; background: #fff; box-shadow: var(--shadow-1); border-inline-start: 3px solid var(--ink); }
+.forge-h { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 500; }
+.forge-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.forge-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.forge-kinds .chip { display: inline-flex; align-items: center; gap: 5px; min-width: 88px; justify-content: center; }
+.forge-idea { display: grid; gap: 2px; min-width: min(100%, 300px); flex: 1 1 260px; }
+.forge-idea select { height: 34px; }
+.forge-row .btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; }
+.forge-groups { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 0; }
+.forge-msg { color: var(--side-b); font-size: 13px; margin: 0; }
+.forge-edit { border-top-style: dashed; }
+.fe-f { display: grid; gap: 4px; }
+.fe-title { font-size: 18px; }
+.fe-blk { display: grid; gap: 4px; padding: 8px 10px; background: var(--rule-soft); }
+.fe-bh { display: flex; align-items: center; gap: 8px; }
+.fe-bh .icon-btn { margin-inline-start: auto; width: 24px; height: 24px; }
+.fe-blk textarea, .fe-f textarea { resize: vertical; font: inherit; line-height: 1.6; }
+.out-added { margin: 0; display: inline-flex; gap: 4px; align-items: center; }
+.added { display: grid; gap: 8px; }
+.added-h { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 500; }
+.added-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
