@@ -42,7 +42,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   await go('/');
 
   // ניווט בסרגל
-  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['כתבה', 'article'], ['בית', '/']]) {
+  for (const [t, h] of [['הדף', 'daf'], ['מראה', 'mirror'], ['אטלס', 'atlas'], ['תובנות', 'trends'], ['מחקר', 'research'], ['כתבה', 'article'], ['בית', '/']]) {
     await p.locator('.tab', { hasText: t }).click(); await p.waitForTimeout(500);
     ok(p.url().includes(h), 'לשונית ' + t);
     ok(await p.locator(`.tab[aria-current="page"]`).textContent() === t, 'לשונית מסומנת ' + t);
@@ -214,11 +214,26 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } }
   const inst = await cdp.send('Page.getInstallabilityErrors');
   ok(inst.installabilityErrors.length === 0, 'התקנה: ' + JSON.stringify(inst.installabilityErrors));
 
+  // מחקר: עשרה צירים, וכל ממצא בשש שכבות עם סולם ודאות
+  await go('/research');
+  ok(await p.locator('.rs-axis').count() === 10, 'מחקר: עשרה צירים');
+  ok(await p.locator('.rs-layers > li').count() === 5 && await p.locator('.rs-meter').count() === 1, 'מחקר: שש שכבות ומד ודאות');
+  ok(await p.locator('.rs-table li').count() > 0, 'מחקר: גבולות המאגר מציג את הקולות הדקים');
+  for (const x of ['register', 'travel', 'roots', 'values', 'inside', 'grammars', 'certainty', 'engage', 'love']) {
+    await p.locator('.rs-axis').nth(['limits', 'register', 'travel', 'roots', 'values', 'inside', 'grammars', 'certainty', 'engage', 'love'].indexOf(x)).click(); await p.waitForTimeout(200);
+    const t = await p.evaluate(() => ({ bars: document.querySelectorAll('.rs-bar').length, tags: document.querySelectorAll('.rs-claim .rs-tag').length, qs: document.querySelectorAll('.rs-qs li').length, ev: document.querySelectorAll('.rs-ev .cc-row, .rs-ev .rs-table li').length, nan: /NaN|undefined|Infinity/.test(document.querySelector('.rs-find').innerText) }));
+    ok(p.url().includes('x=' + x) && t.bars >= 2 && t.tags >= 3 && t.qs >= 3 && t.ev > 0 && !t.nan, 'מחקר: ממצא ' + x + ' ' + JSON.stringify(t));
+  }
+  await p.locator('.rs-copy').click(); await p.waitForTimeout(200);
+  ok((await p.evaluate(() => navigator.clipboard.readText())).includes('שאלות לשיחה'), 'מחקר: העתקת השאלות');
+  await p.locator('.rs-ev .cc-btn').first().click(); await p.locator('.rs-ev .linkish').first().click(); await p.waitForTimeout(400);
+  ok(p.url().includes('#/daf?i='), 'מחקר: עדות מובילה לדף שלה');
+
   // נייד: בלי גלילה אופקית בשום דף
   const m = await b.newPage({ viewport: { width: 390, height: 844 } });
   await m.route('**/appofapp-gh.vercel.app/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: MENU }));
   await m.route('**/fonts.googleapis.com/**', (r) => r.abort());
-  for (const h of ['/', '/daf?i=risk', '/mirror', '/atlas', '/trends', '/article']) {
+  for (const h of ['/', '/daf?i=risk', '/mirror', '/atlas', '/trends', '/research', '/article']) {
     await m.goto(BASE + '#' + h, { waitUntil: 'networkidle' }); await m.waitForTimeout(500);
     ok(!(await m.evaluate(() => document.documentElement.scrollWidth > innerWidth)), 'נייד בלי גלילה אופקית ' + h);
   }

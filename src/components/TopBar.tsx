@@ -11,6 +11,7 @@ const TABS = [
   { id: 'mirror', he: 'מראה' },
   { id: 'atlas', he: 'אטלס' },
   { id: 'trends', he: 'תובנות' },
+  { id: 'research', he: 'מחקר' },
   { id: 'article', he: 'כתבה' },
   { id: 'creations', he: 'יצירות' },
 ];
