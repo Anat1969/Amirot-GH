@@ -204,3 +204,8 @@ mark.insight { background: linear-gradient(transparent 52%, var(--marker) 52%, v
 .cv-icon { position: absolute; top: calc(50% - 74px); left: 50%; transform: translate(-50%, -50%); color: var(--g1); }
 .cv-count { position: absolute; bottom: 30px; left: 34px; font-size: 12px; color: var(--g3); }
 @media (prefers-reduced-motion: reduce) { .cv-say { opacity: 1; animation: none; } .cv-ink { stroke-dashoffset: 0; animation: none; } }
+/* מחשב בינוני: הרעיונות בשורה מלאה משלהם, כדי שהשמות לא ייחתכו לאות אחת (26.11.2026) */
+@media (min-width: 861px) and (max-width: 1500px) {
+  .idea-strip { flex-wrap: wrap; row-gap: 6px; }
+  .idea-strip .topics { order: 9; flex: 1 1 100%; }
+}
